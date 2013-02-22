@@ -7,9 +7,14 @@
   <!--You must start HB while logged in your farmer-->
   <!--If you customize this profile (change profiles, AH buyout etc) remember to rename so it doesn't get overwritten when you update from svn-->
   <!--********** Credits **********-->
-  <!--HighVoltz - Most of the coding-->  
+  <!--HighVoltz - Most of the coding-->
+  <!--nate8282 - Update to MOP routes-->
   <!--Natfoth - Idea to use GoalText for zone change timer-->
-  <!--lii - some good ideas-->
+  <!--lii - some good ideas (Highvoltz put this here, I'm not THAT egotistical)-->
+  
+  <!--farm based on stock needs-- using total stacks available calculate which area would be most efficient-->
+  <!--option to switch to banker based on time interval-->
+  <!--tweak banker code for efficiency mail->AH^until no mail->check for 10 of each auction->if not, go to gbank and withdraw appropriate amount to post, either way deposit leftovers afterwards-->
   <SubRoutine SubRoutineName="Do Not Edit these settings directly!!, Use the 'Settings' Tab instead">
     <Settings DefaultValue="0" Type="UInt32" Name="FarmedZone" Summary="Do Not Edit" Category="Misc" Global="False" Hidden="True" />
     <Settings DefaultValue="" Type="String" Name="BankerName" Summary="The Name of your banker" Category="Banker" Global="False" Hidden="False" />
@@ -33,8 +38,12 @@
     <Settings DefaultValue="Bots\ProfessionBuddy\Profiles\MegaMOP" Type="String" Name="ProfileFolderPath" Summary="This is the path to the base profile folder. Inside are subfolders named after the zones they contain profiles for." Category="Advanced" Global="True" Hidden="False" />
     <Settings DefaultValue="100" Type="Int32" Name="FarmersGold" Summary="Amount of gold on farmer" Category="Auction House" Global="False" Hidden="True" />
     <Settings DefaultValue="true" Type="Boolean" Name="CancelAuctions" Summary="Set to true to cancel auctions before posting on AH" Category="Auction House" Global="False" Hidden="False" />
-    <Settings DefaultValue="100" Type="Int32" Name="Max Stack Number" Summary="Max number of stacks to post on the AH" Category="Auction House" Global="False" Hidden="False" />
+    <Settings DefaultValue="100" Type="Int32" Name="Max Stack Number" Summary="Max number of stacks to post on the AH overall" Category="Auction House" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="Repair In Cty" Summary="Set to true if you want farmer to repair in the city" Category="Farmer" Global="False" Hidden="False" />
+	<Settings DefaultValue="true" Type="Boolean" Name="AdvancedBank" Summary="Set to true if you want to use advanced stashing" Category="Banker" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="BankerDepositGBank" Summary="Banker deposits all mail after auctioning" Category="Banker" Global="False" Hidden="False" />
+	<Settings DefaultValue="0" Type="Int32" Name="Max Stack Number" Summary="Max number of stacks to post on the AH overall" Category="Auction House" Global="False" Hidden="True" />
+	<!--<Settings DefaultValue="10" Type="Int32" Name="SellAmount" Summary="Set how many stacks to sell of each item" Category="Auction House" Global="False" Hidden="False" />-->
   </SubRoutine>
   <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\GatheringProfiles\Uldum\Alliance\(GB2)(Uldum.Nuetral)Mines&amp;Herbs.xml" />
   <If Condition="!Me.Name.Equals((string)Settings[&quot;FarmerName&quot;],StringComparison.InvariantCultureIgnoreCase) " IgnoreCanRun="True">
@@ -115,6 +124,7 @@
         <While Condition="Me.ZoneId == CityZoneID" IgnoreCanRun="True">
           <CallSubRoutine SubRoutineName="Use Portal" />
         </While>
+		
       </If>
       <!--On Banker-->
     </If>
@@ -141,6 +151,8 @@
         </If>
         <CustomAction Code="if (Me.NormalBagsFull)  StopGettingMail = true;" />
       </While>
+	  
+	   <Declaration Code="uint mailCount;" />
       <If Condition="(int)Settings[&quot;FarmersGold&quot;] &lt; 200 &amp;&amp; (int)Me.Gold &gt; 600" IgnoreCanRun="True">
         <CustomAction Code="MyLog(&quot;Mailing farmer gold because he/she has less than 200&quot;);" />
         <CallSubRoutine SubRoutineName="MailFarmerRepairGold" />
@@ -151,6 +163,9 @@
       <If Condition="(bool)Settings[&quot;DepositGoldInGbank&quot;] &amp;&amp; (int)Me.Gold &gt; (int)Settings[&quot;DepositAllButThisAmountInGBank&quot;]" IgnoreCanRun="True">
         <CallSubRoutine SubRoutineName="DepositGoldInGbank" />
       </If>
+	  <If Condition="(bool)Settings[&quot;BankerDepositGBank&quot;]" IgnoreCanRun="True">
+		<CallSubRoutine SubRoutineName="StoreItemsInGbank" />
+	  </If>
       <CustomAction Code="MyLog(&quot;Switching back to farmer&quot;);" />
       <!--Log on Farmer-->
       <CustomAction Code="SwitchCharacter((string)Settings[&quot;FarmerName&quot;],Realm,&quot;Gatherbuddy2&quot;);" />
@@ -169,9 +184,39 @@
       <WaitAction Condition="SecondaryBot.Name == &quot;Combat Bot&quot;" Timeout="20000" />
     </If>
     <CallSubRoutine SubRoutineName="MoveToGbank" />
-    <CustomAction Code="MyLog(&quot;Storing items in GBank&quot;);" />
-    <PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-    <PutItemInBankAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+	<If Condition="!(bool)Settings[&quot;AdvancedBank&quot;]" IgnoreCanRun="True">
+		<CustomAction Code="MyLog(&quot;Storing items in GBank&quot;);" />
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+		<PutItemInBankAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+	</If>
+	
+	<If Condition="(bool)Settings[&quot;AdvancedBank&quot;]" IgnoreCanRun="True">
+		<CustomAction Code="MyLog(&quot;Storing items in GBank (advanced)&quot;);" />
+		<!-- COMMON, ENTIRE TAB -->
+		<!--Ghost Iron Ore-->
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="72092" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+		<!--Green Tea Leaf-->
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" Deposit="All" UseCategory="True" Bank="Guild" ItemID="72234" GuildTab="1" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+		<!--Fool's Cap-->
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" Deposit="All" UseCategory="True" Bank="Guild" ItemID="79011" GuildTab="2" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+		<!--Silkweed-->
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" Deposit="All" UseCategory="True" Bank="Guild" ItemID="72235" GuildTab="3" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+		
+		<!-- UNCOMMON, COMBINE UP TO 2 -->
+		<!--Desecrated Herb-->
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" Deposit="All" UseCategory="True" Bank="Guild" ItemID="89639" GuildTab="4" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+		<!--Snow Lily-->
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" Deposit="All" UseCategory="True" Bank="Guild" ItemID="79010" GuildTab="4" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+		<!--Black Trillium Ore-->
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="72094" GuildTab="5" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+		<!--WhiteTrillium Ore-->
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="72103" GuildTab="5" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+		<!--Rain Poppy-->
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" Deposit="All" UseCategory="True" Bank="Guild" ItemID="72237" GuildTab="6" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+		<!--Golden Lotus-->
+		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" Deposit="All" UseCategory="True" Bank="Guild" ItemID="72238" GuildTab="6" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+	</If>
+	
     <If Condition="OnFarmer &amp;&amp; SecondaryBot.Name != &quot;Gatherbuddy2&quot;" IgnoreCanRun="True">
       <CustomAction Code="SwitchToBot(&quot;Gatherbuddy2&quot;);" />
       <WaitAction Condition="SecondaryBot.Name == &quot;Gatherbuddy2&quot;" Timeout="20000" />
@@ -179,8 +224,36 @@
   </SubRoutine>
   <SubRoutine SubRoutineName="WithdrawItemsInGbank">
     <CallSubRoutine SubRoutineName="MoveToGbank" />
-    <CustomAction Code="MyLog(&quot;Getting items from GBank&quot;);" />
-    <GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="" NpcEntry="0" Amount="0" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+	<If Condition="!(bool)Settings[&quot;AdvancedBank&quot;]" IgnoreCanRun="True">
+		<CustomAction Code="MyLog(&quot;Getting items from GBank&quot;);" />
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="" NpcEntry="0" Amount="0" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+	</If>
+	<If Condition="(bool)Settings[&quot;AdvancedBank&quot;]" IgnoreCanRun="True">
+		<CustomAction Code="MyLog(&quot;Getting items from GBank (advanced)&quot;);" />
+		<!-- COMMON, ENTIRE TAB -->
+		<!--Ghost Iron Ore-->
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72092" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+		<!--Green Tea Leaf-->
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72234" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+		<!--Fool's Cap-->
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="79011" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+		<!--Silkweed-->
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72235" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+		
+		<!-- UNCOMMON, COMBINE UP TO 2 -->
+		<!--Desecrated Herb-->
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="89639" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+		<!--Snow Lily-->
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="79010" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+		<!--Black Trillium Ore-->
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72094" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+		<!--WhiteTrillium Ore-->
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72103" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+		<!--Rain Poppy-->
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72237" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+		<!--Golden Lotus-->
+		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72238" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+	</If>
   </SubRoutine>
   <SubRoutine SubRoutineName="Hearth">
     <!--Dismount and use hearthstone-->
@@ -261,26 +334,30 @@
     </While>
   </SubRoutine>
   <SubRoutine SubRoutineName="SellOnAH">
+	<!--Ghost Iron Ore-->
+	<SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72092" MinBuyout="39g0s0c" MaxBuyout="100g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
     <!--Black Trillium Ore-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72094" MinBuyout="4g0s0c" MaxBuyout="12g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72094" MinBuyout="180g0s0c" MaxBuyout="270g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
     <!--WhiteTrillium Ore-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72103" MinBuyout="3g0s0c" MaxBuyout="10g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72103" MinBuyout="180g0s0c" MaxBuyout="270g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
     <!--Trillium Bar-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72095" MinBuyout="25g10s0c" MaxBuyout="100g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72095" MinBuyout="0g10s0c" MaxBuyout="100g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
     <!--Living Steel-->
     <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72104" MinBuyout="180g10s0c" MaxBuyout="350g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
     <!--Rain Poppy-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72237" MinBuyout="4g0s0c" MaxBuyout="0g90s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72237" MinBuyout="35g0s0c" MaxBuyout="60g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Green Tea Leaf-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72234" MinBuyout="5g0s0c" MaxBuyout="1g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72234" MinBuyout="25g0s0c" MaxBuyout="50g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Silkweed-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72235" MinBuyout="5g0s0c" MaxBuyout="1g20s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72235" MinBuyout="35g10s0c" MaxBuyout="80g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Snow Lily-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="79010" MinBuyout="5g0s0c" MaxBuyout="2g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="79010" MinBuyout="40g10s0c" MaxBuyout="80g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Fool's Cap-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="79011" MinBuyout="8g0s0c" MaxBuyout="2g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="79011" MinBuyout="75g10s0c" MaxBuyout="160g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+	<!--Desecrated Herb-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="89639" MinBuyout="50g10s0c" MaxBuyout="190g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Golden Lotus-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72238" MinBuyout="25g10s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72238" MinBuyout="35g10s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Cooking Mats-->
     <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74847" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74839" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
