@@ -1,0 +1,656 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Professionbuddy>
+  <!--ATTENTION: READ BELOW BEFORE YOU START-->
+  <!--Set Hearth to Dwarf area in Stormwind if Alliance or Org if horde-->
+  <!--Adjust the profile settings especially your banker and farmer name -->
+  <!--if changes are made to settings after profile was running you might need to restart HB (press stop then start)-->
+  <!--You must start HB while logged in your farmer-->
+  <!--If you customize this profile (change profiles, AH buyout etc) remember to rename so it doesn't get overwritten when you update from svn-->
+  <!--********** Credits **********-->
+  <!--HighVoltz - Most of the coding-->  
+  <!--Natfoth - Idea to use GoalText for zone change timer-->
+  <!--lii - some good ideas-->
+  <SubRoutine SubRoutineName="Do Not Edit these settings directly!!, Use the 'Settings' Tab instead">
+    <Settings DefaultValue="0" Type="UInt32" Name="FarmedZone" Summary="Do Not Edit" Category="Misc" Global="False" Hidden="True" />
+    <Settings DefaultValue="" Type="String" Name="BankerName" Summary="The Name of your banker" Category="Banker" Global="False" Hidden="False" />
+    <Settings DefaultValue="" Type="String" Name="FarmerName" Summary="The Name of your Farmer" Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="The Jade Forest" Summary="Farm in The Jade Forest" Category="Pandaria Zones" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Kun-Lai Summit" Summary="Farm in Kun-Lai Summit" Category="Pandaria Zones" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Townlong Steppes" Summary="Farm in Townlong Steppes" Category="Pandaria Zones" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Dread Wastes" Summary="Farm in Dread Wastes" Category="Pandaria Zones" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Valley of the Four Winds" Summary="Farm in Valley of the Four Winds" Category="Pandaria Zones" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="Krasarang Wilds" Summary="Farm in Krasarang Wilds" Category="Pandaria Zones" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="Vale of Eternal Blossoms" Summary="Farm in Vale of Eternal Blossoms" Category="Pandaria Zones" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="EmptyBagsNow" Summary="Set to true to empty bags now." Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="SwitchToBanker" Summary="Set this to true if you want to switch to banker to AH items." Category="Banker" Global="False" Hidden="False" />
+    <Settings DefaultValue="200" Type="Int32" Name="DepositAllButThisAmountInGBank" Summary="Deposits all gold except this amount." Category="Banker" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="DepositGoldInGbank" Summary="Set to true if you want to banker to depost gold in gbank" Category="Banker" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="EnableZoneTimer" Summary="Set to true to leave zone after random amount of time spent there." Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="30" Type="Int32" Name="MinMinutesPerZone" Summary="Minimum number of minutes to spend in a zone" Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="45" Type="Int32" Name="MaxMinutesPerZone" Summary="Max number of minutes to spend in a zone" Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="RandomZones" Summary="Randomly choose next zone with current zone being excluded." Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="DepositInGbank" Summary="deposits items in Gbank instead of mailing them to banker" Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="Bots\ProfessionBuddy\Profiles\MegaMOP" Type="String" Name="ProfileFolderPath" Summary="This is the path to the base profile folder. Inside are subfolders named after the zones they contain profiles for." Category="Advanced" Global="True" Hidden="False" />
+    <Settings DefaultValue="100" Type="Int32" Name="FarmersGold" Summary="Amount of gold on farmer" Category="Auction House" Global="False" Hidden="True" />
+    <Settings DefaultValue="true" Type="Boolean" Name="CancelAuctions" Summary="Set to true to cancel auctions before posting on AH" Category="Auction House" Global="False" Hidden="False" />
+    <Settings DefaultValue="100" Type="Int32" Name="Max Stack Number" Summary="Max number of stacks to post on the AH" Category="Auction House" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Repair In Cty" Summary="Set to true if you want farmer to repair in the city" Category="Farmer" Global="False" Hidden="False" />
+  </SubRoutine>
+  <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\GatheringProfiles\Uldum\Alliance\(GB2)(Uldum.Nuetral)Mines&amp;Herbs.xml" />
+  <If Condition="!Me.Name.Equals((string)Settings[&quot;FarmerName&quot;],StringComparison.InvariantCultureIgnoreCase) " IgnoreCanRun="True">
+    <CustomAction Code="MessageBox.Show(&quot;Switch to your farmer before starting this multiprofile. Must restart HB&quot;);TreeRoot.Stop();" />
+  </If>
+  <CallSubRoutine SubRoutineName="Init" />
+  <CallSubRoutine SubRoutineName="LoadProfile" />
+  <!--Check if GB is current bot and only when farmer is logged on.-->
+  <If Condition="OnFarmer &amp;&amp; SecondaryBot.Name != &quot;Gatherbuddy2&quot;" IgnoreCanRun="True">
+    <CustomAction Code="SwitchToBot(&quot;Gatherbuddy2&quot;);" />
+    <WaitAction Condition="SecondaryBot.Name == &quot;Gatherbuddy2&quot;" Timeout="20000" />
+  </If>
+  <While Condition="true" IgnoreCanRun="True">
+    <If Condition="OnFarmer == true" IgnoreCanRun="True">
+      <CustomAction Code="if ((bool)Settings[&quot;EnableZoneTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= 60000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;    TreeRoot.GoalText = string.Format(&quot;Switching zone in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeToSpendInZone - DateTime.Now.Subtract(ZoneStartTime).TotalMinutes));&#xD;&#xA;   ChatThrottleSW.Reset();&#xD;&#xA;  ChatThrottleSW.Start();&#xD;&#xA;}" />
+      <If Condition="Me.FreeNormalBagSlots &lt;=4 &amp;&amp; Me.ZoneId != CityZoneID" IgnoreCanRun="False">
+        <CustomAction Code="MyLog(&quot;Hearthing because I have only {0} free bags slots&quot;,Me.FreeNormalBagSlots);" />
+        <CallSubRoutine SubRoutineName="Hearth" />
+      </If>
+      <!--Check if bags are full and not in city. If true then hearth-->
+      <If Condition="(bool)Settings[&quot;EmptyBagsNow&quot;] &amp;&amp; Me.ZoneId != CityZoneID" IgnoreCanRun="False">
+        <CustomAction Code="MyLog(&quot;Hearthing because you forced me to&quot;);" />
+        <CallSubRoutine SubRoutineName="Hearth" />
+      </If>
+      <If Condition="((bool)Settings[&quot;EnableZoneTimer&quot;] &amp;&amp;&#xD;&#xA; DateTime.Now.Subtract(ZoneStartTime).TotalMinutes &gt;= TimeToSpendInZone) &amp;&amp; &#xD;&#xA;Me.ZoneId != CityZoneID" IgnoreCanRun="True">
+        <CustomAction Code="MyLog(&quot;Hearthing out of here because I was in zone for {0} minutes&quot;,TimeToSpendInZone);" />
+        <CustomAction Code="Settings[&quot;EmptyBagsNow&quot;] = true;" />
+        <CallSubRoutine SubRoutineName="Hearth" />
+      </If>
+      <!--Check if bags are full and not in city. If true then hearth-->
+      <!--Check if we're in factions capital city. Stormwind = 1519. Org = 1637-->
+      <If Condition="Me.ZoneId == CityZoneID" IgnoreCanRun="True">
+        <!--On Farmer-->
+        <If Condition="Me.FreeNormalBagSlots &lt;=15 || (bool)Settings[&quot;EmptyBagsNow&quot;]" IgnoreCanRun="True">
+          <!--Save the amount of gold on farmer-->
+          <CustomAction Code="Settings[&quot;FarmersGold&quot;] = (int)Me.Gold;" />
+          <If Condition="(bool)Settings[&quot;DepositInGbank&quot;]" IgnoreCanRun="True">
+            <CallSubRoutine SubRoutineName="StoreItemsInGbank" />
+          </If>
+          <If Condition="!(bool)Settings[&quot;DepositInGbank&quot;]" IgnoreCanRun="True">
+            <CallSubRoutine SubRoutineName="MailItems" />
+          </If>
+          <!--Log on Banker-->
+          <If Condition="(bool)Settings[&quot;SwitchToBanker&quot;]" IgnoreCanRun="True">
+            <CustomAction Code="MyLog(&quot;Switching to banker&quot;);" />
+            <CustomAction Code="SwitchCharacter((string)Settings[&quot;BankerName&quot;],Realm,&quot;Combat Bot&quot;);" />
+            <WaitAction Condition="!StyxWoW.IsInWorld" Timeout="20000" />
+          </If>
+          <If Condition="!(bool)Settings[&quot;SwitchToBanker&quot;] &amp;&amp; (bool)Settings[&quot;EmptyBagsNow&quot;]" IgnoreCanRun="True">
+            <CustomAction Code="Settings[&quot;EmptyBagsNow&quot;] = false;" />
+          </If>
+        </If>
+        <If Condition="HasNewMail" IgnoreCanRun="True">
+          <GetMailAction GetMailType="AllItems" ItemID="" CheckNewMail="True" MinFreeBagSlots="2" AutoFindMailBox="True" Location="0, 0, 0" />
+        </If>
+        <!--Wait for Flying mount info to refresh-->
+        <If Condition="Mount.FlyingMounts.Count == 0" IgnoreCanRun="True">
+          <CustomAction Code="Err(&quot;Waiting for MountHelper to refresh !!&quot;);" />
+          <WaitAction Condition="Mount.FlyingMounts.Count &gt; 0" Timeout="300000" />
+        </If>
+        <!--Repair and sell junk-->
+        <If Condition="(bool)Settings[&quot;Repair In Cty&quot;]" IgnoreCanRun="True">
+          <CallSubRoutine SubRoutineName="Repair" />
+        </If>
+        <!--Change FarmedZone to the next zone-->
+        <If Condition="!(bool)Settings[&quot;RandomZones&quot;]" IgnoreCanRun="True">
+          <CustomAction Code="uint a = FarmZoneIDs.FirstOrDefault(zone =&gt; zone &gt; (uint)Settings[&quot;FarmedZone&quot;]);&#xD;&#xA;Settings[&quot;FarmedZone&quot;] = a &gt; 0u? a: FarmZoneIDs[0];" />
+        </If>
+        <If Condition="(bool)Settings[&quot;RandomZones&quot;]" IgnoreCanRun="True">
+          <CustomAction Code="int nextZoneI = 0;&#xD;&#xA;if (FarmZoneIDs.Count &gt; 1) &#xD;&#xA;{&#xD;&#xA;  Random r = new Random();&#xD;&#xA;  int index = FarmZoneIDs.IndexOf((uint)Settings[&quot;FarmedZone&quot;]);&#xD;&#xA;  do&#xD;&#xA;  {&#xD;&#xA;    nextZoneI=r.Next(0, FarmZoneIDs.Count);&#xD;&#xA;  }&#xD;&#xA;  while ( nextZoneI== index);&#xD;&#xA;} &#xD;&#xA;Settings[&quot;FarmedZone&quot;] =  FarmZoneIDs[nextZoneI];" />
+        </If>
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+        <If Condition="(bool)Settings[&quot;EnableZoneTimer&quot;]" IgnoreCanRun="True">
+          <CustomAction Code="TimeToSpendInZone = new Random().Next((int)Settings[&quot;MinMinutesPerZone&quot;],(int)Settings[&quot;MaxMinutesPerZone&quot;]);" />
+          <CustomAction Code="MyLog(&quot;I will spend {0} minutes in this zone&quot;,TimeToSpendInZone);" />
+          <CustomAction Code="ZoneStartTime = DateTime.Now;" />
+        </If>
+        <While Condition="Me.ZoneId == CityZoneID" IgnoreCanRun="True">
+          <CallSubRoutine SubRoutineName="Use Portal" />
+        </While>
+      </If>
+      <!--On Banker-->
+    </If>
+    <If Condition="OnFarmer == false" IgnoreCanRun="False">
+      <If Condition="(bool)Settings[&quot;CancelAuctions&quot;]" IgnoreCanRun="True">
+        <CancelAuctionAction UseCategory="False" Category="TradeGoods" SubCategory="None" SubCategoryType="WoWItemTradeGoodsClass" ItemID="0" AutoFindAh="True" MinBuyout="0g0s0c" Location="0, 0, 0" IgnoreStackSizeBelow="1" />
+      </If>
+      <!--Get all mail and put it on AH-->
+      <If Condition="(bool)Settings[&quot;DepositInGbank&quot;]" IgnoreCanRun="True">
+        <CallSubRoutine SubRoutineName="WithdrawItemsInGbank" />
+        <CallSubRoutine SubRoutineName="SellOnAH" />
+        <CallSubRoutine SubRoutineName="WithdrawItemsInGbank" />
+      </If>
+      <Declaration Code="bool StopGettingMail;" />
+      <CustomAction Code=" StopGettingMail = false;" />
+      <While Condition="(HasNewMail || MailCount&gt; 0) &amp;&amp; ! StopGettingMail" IgnoreCanRun="True">
+        <Declaration Code="uint mailCount;" />
+        <CustomAction Code="mailCount =  TotalItemsInBag();" />
+        <GetMailAction GetMailType="AllItems" ItemID="" CheckNewMail="True" MinFreeBagSlots="0" AutoFindMailBox="True" Location="0, 0, 0" />
+        <!--If we didn't get any items from mailbox then exit loop-->
+        <CustomAction Code="if (TotalItemsInBag() == mailCount)  StopGettingMail = true;" />
+        <If Condition="!StopGettingMail" IgnoreCanRun="True">
+          <CallSubRoutine SubRoutineName="SellOnAH" />
+        </If>
+        <CustomAction Code="if (Me.NormalBagsFull)  StopGettingMail = true;" />
+      </While>
+      <If Condition="(int)Settings[&quot;FarmersGold&quot;] &lt; 200 &amp;&amp; (int)Me.Gold &gt; 600" IgnoreCanRun="True">
+        <CustomAction Code="MyLog(&quot;Mailing farmer gold because he/she has less than 200&quot;);" />
+        <CallSubRoutine SubRoutineName="MailFarmerRepairGold" />
+      </If>
+      <If Condition="(bool)Settings[&quot;EmptyBagsNow&quot;]" IgnoreCanRun="True">
+        <CustomAction Code="Settings[&quot;EmptyBagsNow&quot;] = false;" />
+      </If>
+      <If Condition="(bool)Settings[&quot;DepositGoldInGbank&quot;] &amp;&amp; (int)Me.Gold &gt; (int)Settings[&quot;DepositAllButThisAmountInGBank&quot;]" IgnoreCanRun="True">
+        <CallSubRoutine SubRoutineName="DepositGoldInGbank" />
+      </If>
+      <CustomAction Code="MyLog(&quot;Switching back to farmer&quot;);" />
+      <!--Log on Farmer-->
+      <CustomAction Code="SwitchCharacter((string)Settings[&quot;FarmerName&quot;],Realm,&quot;Gatherbuddy2&quot;);" />
+      <WaitAction Condition="!StyxWoW.IsInWorld" Timeout="20000" />
+    </If>
+  </While>
+  <SubRoutine SubRoutineName="MailItems">
+    <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.SubType == WoWGameObjectType.Mailbox);" Timeout="20000" />
+    <GetMailAction GetMailType="AllItems" ItemID="" CheckNewMail="True" MinFreeBagSlots="0" AutoFindMailBox="True" Location="0, 0, 0" />
+    <MailItemAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" Mail="All" UseCategory="True" ItemID="" Amount="0" AutoFindMailBox="True" Location="0, 0, 0" />
+    <MailItemAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" Mail="All" UseCategory="True" ItemID="" Amount="0" AutoFindMailBox="True" Location="0, 0, 0" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="StoreItemsInGbank">
+    <If Condition="SecondaryBot.Name != &quot;Combat Bot&quot;" IgnoreCanRun="True">
+      <CustomAction Code="SwitchToBot(&quot;Combat Bot&quot;);" />
+      <WaitAction Condition="SecondaryBot.Name == &quot;Combat Bot&quot;" Timeout="20000" />
+    </If>
+    <CallSubRoutine SubRoutineName="MoveToGbank" />
+    <CustomAction Code="MyLog(&quot;Storing items in GBank&quot;);" />
+    <PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+    <PutItemInBankAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+    <If Condition="OnFarmer &amp;&amp; SecondaryBot.Name != &quot;Gatherbuddy2&quot;" IgnoreCanRun="True">
+      <CustomAction Code="SwitchToBot(&quot;Gatherbuddy2&quot;);" />
+      <WaitAction Condition="SecondaryBot.Name == &quot;Gatherbuddy2&quot;" Timeout="20000" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="WithdrawItemsInGbank">
+    <CallSubRoutine SubRoutineName="MoveToGbank" />
+    <CustomAction Code="MyLog(&quot;Getting items from GBank&quot;);" />
+    <GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="" NpcEntry="0" Amount="0" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="Hearth">
+    <!--Dismount and use hearthstone-->
+    <If Condition="!Me.IsCasting" IgnoreCanRun="True">
+      <CustomAction Code="Mount.Dismount();" />
+      <CustomAction Code="Lua.DoString(&quot;UseItemByName(6948)&quot;);" />
+      <WaitAction Condition="Me.IsCasting" Timeout="11000" />
+    </If>
+    <WaitAction Condition="Me.ZoneId == CityZoneID" Timeout="20000" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="DepositGoldInGbank">
+    <CallSubRoutine SubRoutineName="MoveToGbank" />
+    <CustomAction Code="MyLog(&quot;Depositing all but {0} gold into GBank&quot;,Settings[&quot;DepositAllButThisAmountInGBank&quot;]);" />
+    <InteractionAction InteractType="GameObject" Entry="0" InteractDelay="2000" GameObjectType="GuildBank" SpellFocus="Anvil" />
+    <WaitAction Condition="false" Timeout="2000" />
+    <!--Deposit gold in Gbank-->
+    <CustomAction Code="Lua.DoString(&quot;local goldToKeep={0}*10000 local depositAmount=(GetMoney()-goldToKeep) if depositAmount &gt; 0 then DepositGuildBankMoney(depositAmount) end&quot;,Settings[&quot;DepositAllButThisAmountInGBank&quot;]);" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="MoveToGbank">
+    <CustomAction Code="MyLog(&quot;Move to nearest GBank&quot;);" />
+    <Declaration Code="List&lt;WoWPoint&gt; GBankLocations = new List&lt;WoWPoint&gt;();" />
+    <Declaration Code="WoWPoint GbankLocation;" />
+    <CustomAction Code="GBankLocations.Clear();" />
+    <CustomAction Code="GbankLocation = WoWPoint.Zero;" />
+    <If Condition="Me.MapId == 0" IgnoreCanRun="True">
+      <!--Stormwind-->
+      <If Condition="Me.ZoneId == 1519" IgnoreCanRun="True">
+        <!--Stormwind 'Human' GuildBank-->
+        <CustomAction Code="GBankLocations.Add(new WoWPoint(-8920.106, 621.256, 100.226));" />
+        <!--Stormwind 'Dwarf' GuildBank-->
+        <CustomAction Code="GBankLocations.Add(new WoWPoint(-8315.161, 582.8967, 100.3132));" />
+      </If>
+    </If>
+    <If Condition="Me.MapId == 1" IgnoreCanRun="True">
+      <!--Org-->
+      <If Condition="Me.ZoneId == 1637" IgnoreCanRun="True">
+        <!--Valley of Strength GuildBank-->
+        <CustomAction Code="GBankLocations.Add(new WoWPoint(1533.167, -4362.145, 20.54772));" />
+        <!--Valley of Honor GuildBank-->
+        <CustomAction Code="GBankLocations.Add(new WoWPoint(1886.409, -4683.326, 38.5004));" />
+        <!--Valley of Wisdom GuildBank-->
+        <CustomAction Code="GBankLocations.Add(new WoWPoint(1951.516, -4216.525, 37.19798));" />
+        <!--Goblin Slums GuildBank-->
+        <CustomAction Code="GBankLocations.Add(new WoWPoint(1573.427, -4172.664, 51.74817));" />
+      </If>
+    </If>
+    <!--Dalaran-->
+    <If Condition="Me.ZoneId == 4395" IgnoreCanRun="True">
+      <!--North GuildBank-->
+      <CustomAction Code="GBankLocations.Add(new WoWPoint(5961.328, 616.5127, 650.6276));" />
+      <!--Valley of Honor GuildBank-->
+      <CustomAction Code="GBankLocations.Add(new WoWPoint(5651.325, 682.1651, 651.9932));" />
+    </If>
+    <If Condition="GBankLocations.Count== 0" IgnoreCanRun="True">
+      <CustomAction Code="Log(Colors.Green,&quot;Multiprofile: &quot;,Colors.LightGreen,&quot;There is no gbank found in your area&quot;);" />
+    </If>
+    <If Condition="GBankLocations.Count &gt; 0" IgnoreCanRun="True">
+      <CustomAction Code="GbankLocation  = GBankLocations.OrderBy( pnt =&gt; pnt.Distance(Me.Location)).FirstOrDefault();" />
+      <While Condition="DistanceTo(GbankLocation) &gt; 5" IgnoreCanRun="True">
+        <CustomAction Code="MoveTo(GbankLocation);" />
+      </While>
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="MailFarmerRepairGold">
+    <While Condition="MailFrame.Instance == null || !MailFrame.Instance.IsVisible" IgnoreCanRun="True">
+      <InteractionAction InteractType="GameObject" Entry="0" InteractDelay="0" GameObjectType="Mailbox" SpellFocus="Anvil" />
+    </While>
+    <WaitAction Condition="false" Timeout="2000" />
+    <CustomAction Code=" MailFrame.Instance.SwitchToSendMailTab();" />
+    <WaitAction Condition="false" Timeout="2000" />
+    <CustomAction Code="Lua.DoString(&quot;local a={0} SetSendMailMoney(a*10000) SendMail(\&quot;{1}\&quot;,a..' gold attached','')&quot;,500-(int)Settings[&quot;FarmersGold&quot;],Settings[&quot;FarmerName&quot;]);" />
+    <WaitAction Condition="false" Timeout="2000" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="UseNormalMountAsDruid">
+    <While Condition="!Me.Mounted" IgnoreCanRun="True">
+      <CustomAction Code="if (Me.IsMoving)&#xD;&#xA;   WoWMovement.MoveStop();&#xD;&#xA;if (Mount.FlyingMounts.Count &gt; 0)&#xD;&#xA;{&#xD;&#xA;  SpellManager.Cast(Mount.FlyingMounts.First().CreatureSpell);&#xD;&#xA;}&#xD;&#xA;else&#xD;&#xA;{&#xD;&#xA;   Err(&quot;You need to go learn a normal flying mount or do most quests here in Vashjir&quot;);&#xD;&#xA;}&#xD;&#xA;&#xD;&#xA;&#xD;&#xA;" />
+      <WaitAction Condition="Me.Mounted" Timeout="4000" />
+    </While>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="SellOnAH">
+    <!--Black Trillium Ore-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72094" MinBuyout="4g0s0c" MaxBuyout="12g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <!--WhiteTrillium Ore-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72103" MinBuyout="3g0s0c" MaxBuyout="10g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <!--Trillium Bar-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72095" MinBuyout="25g10s0c" MaxBuyout="100g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <!--Living Steel-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72104" MinBuyout="180g10s0c" MaxBuyout="350g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <!--Rain Poppy-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72237" MinBuyout="4g0s0c" MaxBuyout="0g90s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <!--Green Tea Leaf-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72234" MinBuyout="5g0s0c" MaxBuyout="1g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <!--Silkweed-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72235" MinBuyout="5g0s0c" MaxBuyout="1g20s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <!--Snow Lily-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="79010" MinBuyout="5g0s0c" MaxBuyout="2g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <!--Fool's Cap-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="79011" MinBuyout="8g0s0c" MaxBuyout="2g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <!--Golden Lotus-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72238" MinBuyout="25g10s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <!--Cooking Mats-->
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74847" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74839" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74834" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74838" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74833" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74844" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74846" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74842" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74850" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <!--Ironpaw Token Items-->
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="74849" MinBuyout="2g0s0c" MaxBuyout="7g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="74853" MinBuyout="150g0s0c" MaxBuyout="300g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="74863" MinBuyout="5g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <!--Gems-->
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76135" MinBuyout="0g90s0c" MaxBuyout="5g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76133" MinBuyout="0g90s0c" MaxBuyout="5g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76137" MinBuyout="0g90s0c" MaxBuyout="5g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76130" MinBuyout="0g90s0c" MaxBuyout="5g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76134" MinBuyout="0g90s0c" MaxBuyout="5g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76136" MinBuyout="0g90s0c" MaxBuyout="5g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76141" MinBuyout="15g90s0c" MaxBuyout="80g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76138" MinBuyout="15g90s0c" MaxBuyout="80g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76139" MinBuyout="15g90s0c" MaxBuyout="80g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76140" MinBuyout="15g90s0c" MaxBuyout="80g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76142" MinBuyout="15g90s0c" MaxBuyout="80g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="76131" MinBuyout="15g90s0c" MaxBuyout="80g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="Meta" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="100g0s0c" MaxBuyout="500g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="Blue" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="0g80s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="Yellow" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="0g80s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="Purple" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="0g80s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="Green" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="0g80s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="Orange" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="0g80s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="Simple" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="0g70s0c" MaxBuyout="5g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="Prismatic" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="1g0s0c" MaxBuyout="60g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="Red" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="0g60s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Cloth" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="0g80s0c" MaxBuyout="5g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="20" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Elemental" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="0g80s0c" MaxBuyout="7g0s0c" StackSize="20" IgnoreStackSizeBelow="20" Amount="20" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="MetalStone" UseCategory="True" RunTime="_12_Hours" AmountType="Amount" ItemID="" MinBuyout="0g80s0c" MaxBuyout="30g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="20" BidPrecent="95" UndercutPrecent="0.3" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="True" RunTime="_24_Hours" AmountType="Everything" ItemID="" MinBuyout="0g80s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="20" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="Init">
+    <CustomAction Code="MyLog(&quot;Made by HighVoltz&quot;);" />
+    <CustomAction Code="Log(Colors.GreenYellow,&quot;&quot;,Colors.GreenYellow,&quot;*************** Settings ****************&quot;);" />
+    <CustomAction Code="MyLog(&quot;SwitchToBanker: {0}&quot;,Settings[&quot;SwitchToBanker&quot;]);" />
+    <CustomAction Code="MyLog(&quot;DepositGoldInGbank: {0}&quot;,Settings[&quot;DepositGoldInGbank&quot;]);" />
+    <CustomAction Code="MyLog(&quot;MinMinutesPerZone: {0}&quot;,Settings[&quot;MinMinutesPerZone&quot;]);" />
+    <CustomAction Code="MyLog(&quot;MaxMinutesPerZone: {0}&quot;,Settings[&quot;MaxMinutesPerZone&quot;]);" />
+    <CustomAction Code="MyLog(&quot;RandomZones: {0}&quot;,Settings[&quot;RandomZones&quot;]);" />
+    <CustomAction Code="MyLog(&quot;DepositInGbank: {0}&quot;,Settings[&quot;DepositInGbank&quot;]);" />
+    <CustomAction Code="MyLog(&quot;CancelAuctions: {0}&quot;,Settings[&quot;CancelAuctions&quot;]);" />
+    <CustomAction Code="MyLog(&quot;Max Stack Number: {0}&quot;,Settings[&quot;Max Stack Number&quot;]);" />
+    <CustomAction Code="Log(Colors.GreenYellow,&quot;&quot;,Colors.GreenYellow,&quot;***************** Zones *****************&quot;);" />
+    <CustomAction Code="MyLog(&quot;Dread Wastes: {0}&quot;,Settings[&quot;Dread Wastes&quot;]);" />
+    <CustomAction Code="MyLog(&quot;Krasarang Wilds: {0}&quot;,Settings[&quot;Krasarang Wilds&quot;]);" />
+    <CustomAction Code="MyLog(&quot;Kun-Lai Summit: {0}&quot;,Settings[&quot;Kun-Lai Summit&quot;]);" />
+    <CustomAction Code="MyLog(&quot;The Jade Forest: {0}&quot;,Settings[&quot;The Jade Forest&quot;]);" />
+    <CustomAction Code="MyLog(&quot;Townlong Steppes: {0}&quot;,Settings[&quot;Townlong Steppes&quot;]);" />
+    <CustomAction Code="MyLog(&quot;Vale of Eternal Blossoms: {0}&quot;,Settings[&quot;Vale of Eternal Blossoms&quot;]);" />
+    <CustomAction Code="MyLog(&quot;Valley of the Four Winds: {0}&quot;,Settings[&quot;Valley of the Four Winds&quot;]);" />
+    <Declaration Code="string Realm;" />
+    <Declaration Code="bool OnFarmer;" />
+    <Declaration Code="int CityZoneID,TimeToSpendInZone;" />
+    <Declaration Code="List&lt;uint&gt; FarmZoneIDs;" />
+    <Declaration Code="DateTime ZoneStartTime;" />
+    <Declaration Code="Stopwatch ChatThrottleSW = new Stopwatch();" />
+    <!--store current server name, needed when switching characters.-->
+    <CustomAction Code="Realm = Lua.GetReturnVal&lt;string&gt;(&quot;return GetRealmName()&quot;,0);" />
+    <!--set to 'true' if on farmer, otherwise if on banker then it's set to false-->
+    <CustomAction Code="OnFarmer = Lua.GetReturnVal&lt;string&gt;(&quot;return UnitName('player')&quot;,0).Equals((string)Settings[&quot;FarmerName&quot;],StringComparison.InvariantCultureIgnoreCase);" />
+    <!--ZoneID of bots capital city-->
+    <CustomAction Code="CityZoneID = Me.IsAlliance? 1519:1637;" />
+    <!--List of zones IDs that we will farm in accending numerical order-->
+    <CustomAction Code="FarmZoneIDs = new List&lt;uint&gt;();" />
+    <If Condition="OnFarmer" IgnoreCanRun="True">
+      <!--Random Time-->
+      <CustomAction Code="TimeToSpendInZone= new Random().Next((int)Settings[&quot;MinMinutesPerZone&quot;],(int)Settings[&quot;MaxMinutesPerZone&quot;]);" />
+      <CustomAction Code="MyLog(&quot;I will spend {0} minutes in this zone&quot;,TimeToSpendInZone);" />
+      <CustomAction Code="ZoneStartTime = DateTime.Now;" />
+      <!--Dread Wastes-->
+      <CustomAction Code="if ((bool)Settings[&quot;Dread Wastes&quot;]) FarmZoneIDs.Add(6138);" />
+      <!--Krasarang Wilds-->
+      <CustomAction Code="if ((bool)Settings[&quot;Krasarang Wilds&quot;]) FarmZoneIDs.Add(6134);" />
+      <!--Kun-Lai Summit-->
+      <CustomAction Code="if ((bool)Settings[&quot;Kun-Lai Summit&quot;]) FarmZoneIDs.Add(5841);" />
+      <!--The Jade Forest-->
+      <CustomAction Code="if ((bool)Settings[&quot;The Jade Forest&quot;]) FarmZoneIDs.Add(5785);" />
+      <!--Townlong Steppes-->
+      <CustomAction Code="if ((bool)Settings[&quot;Townlong Steppes&quot;]) FarmZoneIDs.Add(5842);" />
+      <!--Vale of Eternal Blossoms-->
+      <CustomAction Code="if ((bool)Settings[&quot;Vale of Eternal Blossoms&quot;]) FarmZoneIDs.Add(5840);" />
+      <!--Valley of the Four Winds-->
+      <CustomAction Code="if ((bool)Settings[&quot;Valley of the Four Winds&quot;]) FarmZoneIDs.Add(5805);" />
+      <!--IF YOU ARE ADDING YOUR OWN ZONES DO NOT ADD THEM BELOW THIS LINE-->
+      <CustomAction Code="FarmZoneIDs = FarmZoneIDs.OrderBy(z =&gt; z).ToList();" />
+      <CustomAction Code="CharacterSettings.Instance.MailRecipient = (string)Settings[&quot;BankerName&quot;];" />
+      <If Condition="FarmZoneIDs.Count == 0" IgnoreCanRun="True">
+        <CustomAction Code="MyLog(&quot;Trying to be funny or something? How can you expect to farm anything with all zones disabled?&quot;);" />
+        <CustomAction Code="TreeRoot.Stop();" />
+      </If>
+      <If Condition="FarmZoneIDs.Contains(Me.ZoneId)" IgnoreCanRun="True">
+        <CustomAction Code="Settings[&quot;FarmedZone&quot;] = Me.ZoneId;" />
+      </If>
+      <If Condition="Me.ZoneId != CityZoneID &amp;&amp; !FarmZoneIDs.Contains(Me.ZoneId)" IgnoreCanRun="True">
+        <CustomAction Code="MyLog(&quot;Hearthing since bot isn't in capital or one of the farmed zones&quot;);" />
+        <CallSubRoutine SubRoutineName="Hearth" />
+      </If>
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="Use Portal">
+    <Declaration Code="uint currentZoneID;" />
+    <CustomAction Code="currentZoneID = Me.ZoneId;" />
+    <!--Dread Wastes-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 6138" IgnoreCanRun="True">
+      <CustomAction Code="MyLog(&quot;Using Portal to Pandaria&quot;);" />
+      <If Condition="Me.IsAlliance" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="-8231.457, 444.3759, 216.6882" />
+        <FlyToAction Dismount="False" Location="-8195.537, 526.9921, 117.1019" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215457" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="1159.442, 47.04657, 771.2917" />
+        <FlyToAction Dismount="False" Location="533.5371, 2299.58, 432.243" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+      <If Condition="Me.IsHorde" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="1971.228, -4699.085, 50.88165" />
+        <FlyToAction Dismount="False" Location="2013.327, -4699.271, 28.61472" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215424" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="1159.442, 47.04657, 771.2917" />
+        <FlyToAction Dismount="False" Location="533.5371, 2299.58, 432.243" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+    </If>
+    <!--Krasarang Wilds-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 6134" IgnoreCanRun="True">
+      <CustomAction Code="MyLog(&quot;Using Portal to Pandaria&quot;);" />
+      <If Condition="Me.IsAlliance" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="-8231.457, 444.3759, 216.6882" />
+        <FlyToAction Dismount="False" Location="-8195.537, 526.9921, 117.1019" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215457" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="-660.3162, -712.5911, 77.80901" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+      <If Condition="Me.IsHorde" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="1971.228, -4699.085, 50.88165" />
+        <FlyToAction Dismount="False" Location="2013.327, -4699.271, 28.61472" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215424" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="-660.3162, -712.5911, 77.80901" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+    </If>
+    <!--Kun-Lai Summit-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5841" IgnoreCanRun="True">
+      <CustomAction Code="MyLog(&quot;Using Portal to Pandaria&quot;);" />
+      <If Condition="Me.IsAlliance" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="-8231.457, 444.3759, 216.6882" />
+        <FlyToAction Dismount="False" Location="-8195.537, 526.9921, 117.1019" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215457" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="2730.461, 528.8766, 569.1044" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+      <If Condition="Me.IsHorde" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="1971.228, -4699.085, 50.88165" />
+        <FlyToAction Dismount="False" Location="2013.327, -4699.271, 28.61472" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215424" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="2730.461, 528.8766, 569.1044" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+    </If>
+    <!--The Jade Forest-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5785" IgnoreCanRun="True">
+      <CustomAction Code="MyLog(&quot;Using Portal to Pandaria&quot;);" />
+      <If Condition="Me.IsAlliance" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="-8231.457, 444.3759, 216.6882" />
+        <FlyToAction Dismount="False" Location="-8195.537, 526.9921, 117.1019" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215457" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+      <If Condition="Me.IsHorde" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="1971.228, -4699.085, 50.88165" />
+        <FlyToAction Dismount="False" Location="2013.327, -4699.271, 28.61472" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215424" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+    </If>
+    <!--Townlong Steppes-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5842" IgnoreCanRun="True">
+      <CustomAction Code="MyLog(&quot;Using Portal to Pandaria&quot;);" />
+      <If Condition="Me.IsAlliance" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="-8231.457, 444.3759, 216.6882" />
+        <FlyToAction Dismount="False" Location="-8195.537, 526.9921, 117.1019" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215457" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="1766.536, 2377.078, 536.9471" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+      <If Condition="Me.IsHorde" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="1971.228, -4699.085, 50.88165" />
+        <FlyToAction Dismount="False" Location="2013.327, -4699.271, 28.61472" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215424" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="1766.536, 2377.078, 536.9471" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+    </If>
+    <!--Vale of Eternal Blossoms-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5840" IgnoreCanRun="True">
+      <CustomAction Code="MyLog(&quot;Using Portal to Pandaria&quot;);" />
+      <If Condition="Me.IsAlliance" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="-8231.457, 444.3759, 216.6882" />
+        <FlyToAction Dismount="False" Location="-8195.537, 526.9921, 117.1019" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215457" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="1159.442, 47.04657, 771.2917" />
+        <FlyToAction Dismount="False" Location="1152.385, 306.1528, 620.63" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+      <If Condition="Me.IsHorde" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="1971.228, -4699.085, 50.88165" />
+        <FlyToAction Dismount="False" Location="2013.327, -4699.271, 28.61472" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215424" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="1159.442, 47.04657, 771.2917" />
+        <FlyToAction Dismount="False" Location="1152.385, 306.1528, 620.63" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+    </If>
+    <!--Valley of the Four Winds-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5805" IgnoreCanRun="True">
+      <CustomAction Code="MyLog(&quot;Using Portal to Pandaria&quot;);" />
+      <If Condition="Me.IsAlliance" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="-8231.457, 444.3759, 216.6882" />
+        <FlyToAction Dismount="False" Location="-8195.537, 526.9921, 117.1019" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215457" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="511.1522, -746.5512, 268.1245" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+      <If Condition="Me.IsHorde" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="1971.228, -4699.085, 50.88165" />
+        <FlyToAction Dismount="False" Location="2013.327, -4699.271, 28.61472" />
+        <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.Entry == 207692);" Timeout="10000" />
+        <InteractionAction InteractType="GameObject" Entry="215424" InteractDelay="2000" GameObjectType="Transport" SpellFocus="Anvil" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <ChangeBotAction BotName="Combat Bot" />
+        <FlyToAction Dismount="False" Location="511.1522, -746.5512, 268.1245" />
+        <ChangeBotAction BotName="Gatherbuddy2" />
+        <WaitAction Condition="false" Timeout="6000" />
+        <CallSubRoutine SubRoutineName="LoadProfile" />
+      </If>
+    </If>
+    <!--Wait until zone changes.-->
+    <WaitAction Condition="Me.ZoneId != currentZoneID" Timeout="20000" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="LoadProfile">
+    <!--Dread Wastes-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 6138" IgnoreCanRun="True">
+      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Dread Wastes&quot;);" />
+    </If>
+    <!--Krasarang Wilds-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 6134" IgnoreCanRun="True">
+      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Krasarang Wilds&quot;);" />
+    </If>
+    <!--Kun-Lai Summit-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5841" IgnoreCanRun="True">
+      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Kun-Lai Summit&quot;);" />
+    </If>
+    <!--The Jade Forest-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5785" IgnoreCanRun="True">
+      <CustomAction Code="LoadPorfileFromSubfolder(&quot;The Jade Forest&quot;);" />
+    </If>
+    <!--Townlong Steppes-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5842" IgnoreCanRun="True">
+      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Townlong Steppes&quot;);" />
+    </If>
+    <!--Vale of Eternal Blossoms-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5840" IgnoreCanRun="True">
+      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Vale of Eternal Blossoms&quot;);" />
+    </If>
+    <!--Valley of the Four Winds-->
+    <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5805" IgnoreCanRun="True">
+      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Valley of the Four Winds&quot;);" />
+    </If>
+  </SubRoutine>
+  <SubRoutine SubRoutineName="Repair">
+    <CustomAction Code="MyLog(&quot;Repairing&quot;);" />
+    <If Condition="Me.IsAlliance" IgnoreCanRun="True">
+      <If Condition="SpellManager.HasSpell(&quot;Flight Master's License&quot;)" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="-8430.486, 623.2193, 95.50689" />
+      </If>
+      <MoveToAction Location="-8430.486, 623.2193, 95.50689" MoveType="Location" Pathing="Navigator" Entry="0" />
+      <While Condition="MerchantFrame.Instance != null &amp;&amp; !MerchantFrame.Instance.IsVisible" IgnoreCanRun="True">
+        <InteractionAction InteractType="NPC" Entry="5512" InteractDelay="2000" GameObjectType="Mailbox" SpellFocus="Anvil" />
+      </While>
+    </If>
+    <If Condition="Me.IsHorde" IgnoreCanRun="True">
+      <If Condition="SpellManager.HasSpell(&quot;Flight Master's License&quot;)" IgnoreCanRun="True">
+        <FlyToAction Dismount="False" Location="1971.228, -4699.085, 50.88165" />
+        <FlyToAction Dismount="False" Location="2043.956, -4828.79, 27.58743" />
+      </If>
+      <While Condition="MerchantFrame.Instance != null &amp;&amp; !MerchantFrame.Instance.IsVisible" IgnoreCanRun="True">
+        <InteractionAction InteractType="NPC" Entry="3361" InteractDelay="2000" GameObjectType="Mailbox" SpellFocus="Anvil" />
+      </While>
+    </If>
+    <WaitAction Condition="false" Timeout="8000" />
+    <CustomAction Code="Lua.DoString(&quot;RepairAllItems()&quot;);" />
+    <SellItemAction Sell="All" NpcEntry="0" Location="0, 0, 0" SellItemType="Greys" ItemID="0" Count="0" />
+    <SellItemAction Sell="All" NpcEntry="0" Location="0, 0, 0" SellItemType="Specific" ItemID="63122" Count="0" />
+  </SubRoutine>
+  <Declaration Code="void MyLog(string format,params object[] args)&#xD;&#xA;        {&#xD;&#xA;            Log(Colors.Green,&quot;Multiprofile: &quot;,Colors.LightGreen,format,args);&#xD;&#xA;        }&#xD;&#xA;" />
+  <Declaration Code="void Err(string format,params object[] args)&#xD;&#xA;        {&#xD;&#xA;            Log(Colors.Green,&quot;Multiprofile: &quot;,Colors.Red,format,args);&#xD;&#xA;        }&#xD;&#xA;" />
+  <Declaration Code="uint TotalItemsInBag()&#xD;&#xA;        {&#xD;&#xA;            uint cnt=0;&#xD;&#xA;            foreach (var item in Me.BagItems)&#xD;&#xA;                 cnt += item.StackCount;&#xD;&#xA;            return cnt;&#xD;&#xA;        }&#xD;&#xA;" />
+  <Declaration Code="        void LoadPorfileFromSubfolder(string folder)&#xD;&#xA;        {&#xD;&#xA;            string path = (string)Settings[&quot;ProfileFolderPath&quot;];&#xD;&#xA;            bool isAbsolute = System.IO.Path.IsPathRooted(path);&#xD;&#xA;            if (!isAbsolute)&#xD;&#xA;                path = System.IO.Path.Combine(Utilities.AssemblyDirectory, path);&#xD;&#xA;            path = System.IO.Path.Combine(path, folder);&#xD;&#xA;            path = System.IO.Path.Combine(path, Me.IsHorde ? &quot;Horde&quot; : &quot;Alliance&quot;);&#xD;&#xA;            if (System.IO.Directory.Exists(path))&#xD;&#xA;            {&#xD;&#xA;                string[] files = System.IO.Directory.GetFiles(path, &quot;*.xml&quot;, System.IO.SearchOption.TopDirectoryOnly);&#xD;&#xA;                if (files != null &amp;&amp; files.Length &gt; 0)&#xD;&#xA;                {&#xD;&#xA;                    int index = new Random().Next(0, files.Length);&#xD;&#xA;                    ProfileManager.LoadNew(files[index]);&#xD;&#xA;                    MyLog(&quot;Loading profile for zone: {0}&quot;, folder);&#xD;&#xA;                }&#xD;&#xA;                else&#xD;&#xA;                    Err(&quot;no profiles found in path: {0}&quot;, path);&#xD;&#xA;            }&#xD;&#xA;            else&#xD;&#xA;                MyLog(&quot;ProfilePath: {0} not found&quot;, path);&#xD;&#xA;        }" />
+</Professionbuddy>
