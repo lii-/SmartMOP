@@ -12,11 +12,12 @@
   <!--Natfoth - Idea to use GoalText for zone change timer-->
   <!--lii - some good ideas (Highvoltz put this here, I'm not THAT egotistical)-->
   
+  <!--TODO-->
   <!--farm based on stock needs-- using total stacks available calculate which area would be most efficient-->
-  <!--option to switch to banker based on time interval-->
   <!--tweak banker code for efficiency mail->AH^until no mail->check for 10 of each auction->if not, go to gbank and withdraw appropriate amount to post, either way deposit leftovers afterwards-->
   <SubRoutine SubRoutineName="Do Not Edit these settings directly!!, Use the 'Settings' Tab instead">
     <Settings DefaultValue="0" Type="UInt32" Name="FarmedZone" Summary="Do Not Edit" Category="Misc" Global="False" Hidden="True" />
+	<Settings DefaultValue="true" Type="Boolean" Name="DoSwitch" Summary="Do Not Edit" Category="Misc" Global="False" Hidden="True" />
     <Settings DefaultValue="" Type="String" Name="BankerName" Summary="The Name of your banker" Category="Banker" Global="False" Hidden="False" />
     <Settings DefaultValue="" Type="String" Name="FarmerName" Summary="The Name of your Farmer" Category="Farmer" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="The Jade Forest" Summary="Farm in The Jade Forest" Category="Pandaria Zones" Global="False" Hidden="False" />
@@ -29,20 +30,23 @@
     <Settings DefaultValue="false" Type="Boolean" Name="EmptyBagsNow" Summary="Set to true to empty bags now." Category="Farmer" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="SwitchToBanker" Summary="Set this to true if you want to switch to banker to AH items." Category="Banker" Global="False" Hidden="False" />
     <Settings DefaultValue="200" Type="Int32" Name="DepositAllButThisAmountInGBank" Summary="Deposits all gold except this amount." Category="Banker" Global="False" Hidden="False" />
-    <Settings DefaultValue="false" Type="Boolean" Name="DepositGoldInGbank" Summary="Set to true if you want to banker to depost gold in gbank" Category="Banker" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="EnableZoneTimer" Summary="Set to true to leave zone after random amount of time spent there." Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="DepositGoldInGbank" Summary="Set to true if you want the banker to deposit gold in gbank" Category="Banker" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="EnableZoneTimer" Summary="Set to true to leave zone after random amount of time spent there" Category="Farmer" Global="False" Hidden="False" />
     <Settings DefaultValue="30" Type="Int32" Name="MinMinutesPerZone" Summary="Minimum number of minutes to spend in a zone" Category="Farmer" Global="False" Hidden="False" />
-    <Settings DefaultValue="45" Type="Int32" Name="MaxMinutesPerZone" Summary="Max number of minutes to spend in a zone" Category="Farmer" Global="False" Hidden="False" />
-    <Settings DefaultValue="false" Type="Boolean" Name="RandomZones" Summary="Randomly choose next zone with current zone being excluded." Category="Farmer" Global="False" Hidden="False" />
-    <Settings DefaultValue="false" Type="Boolean" Name="DepositInGbank" Summary="deposits items in Gbank instead of mailing them to banker" Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="45" Type="Int32" Name="MaxMinutesPerZone" Summary="Maximum number of minutes to spend in a zone" Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="RandomZones" Summary="Randomly choose next zone with current zone being excluded" Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="DepositInGbank" Summary="Deposits items in Gbank instead of mailing them to banker" Category="Farmer" Global="False" Hidden="False" />
     <Settings DefaultValue="Bots\ProfessionBuddy\Profiles\MegaMOP" Type="String" Name="ProfileFolderPath" Summary="This is the path to the base profile folder. Inside are subfolders named after the zones they contain profiles for." Category="Advanced" Global="True" Hidden="False" />
     <Settings DefaultValue="100" Type="Int32" Name="FarmersGold" Summary="Amount of gold on farmer" Category="Auction House" Global="False" Hidden="True" />
+	<Settings DefaultValue="true" Type="Boolean" Name="CanHearth" Summary="Whether we can hearth or not" Category="Farmer" Global="False" Hidden="True" />
     <Settings DefaultValue="true" Type="Boolean" Name="CancelAuctions" Summary="Set to true to cancel auctions before posting on AH" Category="Auction House" Global="False" Hidden="False" />
     <Settings DefaultValue="100" Type="Int32" Name="Max Stack Number" Summary="Max number of stacks to post on the AH overall" Category="Auction House" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="Repair In Cty" Summary="Set to true if you want farmer to repair in the city" Category="Farmer" Global="False" Hidden="False" />
 	<Settings DefaultValue="true" Type="Boolean" Name="AdvancedBank" Summary="Set to true if you want to use advanced stashing" Category="Banker" Global="False" Hidden="False" />
 	<Settings DefaultValue="false" Type="Boolean" Name="BankerDepositGBank" Summary="Banker deposits all mail after auctioning" Category="Banker" Global="False" Hidden="False" />
-	<Settings DefaultValue="0" Type="Int32" Name="Max Stack Number" Summary="Max number of stacks to post on the AH overall" Category="Auction House" Global="False" Hidden="True" />
+	<Settings DefaultValue="false" Type="Int32" Name="EnableBankerTimer" Summary="Set to true to switch to banker after random amount of time instead of after zone completion" Category="Banker" Global="False" Hidden="False" />
+	<Settings DefaultValue="30" Type="Int32" Name="MinMinutesUntilBanker" Summary="Minimum number of minutes to wait to switch" Category="Banker" Global="False" Hidden="False" />
+    <Settings DefaultValue="45" Type="Int32" Name="MaxMinutesUntilBanker" Summary="Maximum number of minutes to wait to switch" Category="Banker" Global="False" Hidden="False" />
 	<!--<Settings DefaultValue="10" Type="Int32" Name="SellAmount" Summary="Set how many stacks to sell of each item" Category="Auction House" Global="False" Hidden="False" />-->
   </SubRoutine>
   <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\GatheringProfiles\Uldum\Alliance\(GB2)(Uldum.Nuetral)Mines&amp;Herbs.xml" />
@@ -58,9 +62,18 @@
   </If>
   <While Condition="true" IgnoreCanRun="True">
     <If Condition="OnFarmer == true" IgnoreCanRun="True">
-      <CustomAction Code="if ((bool)Settings[&quot;EnableZoneTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= 60000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;    TreeRoot.GoalText = string.Format(&quot;Switching zone in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeToSpendInZone - DateTime.Now.Subtract(ZoneStartTime).TotalMinutes));&#xD;&#xA;   ChatThrottleSW.Reset();&#xD;&#xA;  ChatThrottleSW.Start();&#xD;&#xA;}" />
-      <If Condition="Me.FreeNormalBagSlots &lt;=4 &amp;&amp; Me.ZoneId != CityZoneID" IgnoreCanRun="False">
-        <CustomAction Code="MyLog(&quot;Hearthing because I have only {0} free bags slots&quot;,Me.FreeNormalBagSlots);" />
+      <CustomAction Code="if ((bool)Settings[&quot;EnableZoneTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= 60000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;    TreeRoot.GoalText = string.Format(&quot;Switching zone in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeToSpendInZone - DateTime.Now.Subtract(ZoneStartTime).TotalMinutes));&#xD;&#xA;}" />
+	  <CustomAction Code="if ((bool)Settings[&quot;EnableBankerTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= 60000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;    TreeRoot.GoalText = string.Format(&quot;Switching to banker in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeUntilBanker - DateTime.Now.Subtract(BankerStartTime).TotalMinutes));&#xD;&#xA;" />
+	  <CustomAction Code="if (((bool)Settings[&quot;EnableBankerTimer&quot;] || (bool)Settings[&quot;EnableZoneTimer&quot;])  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= 60000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;		ChatThrottleSW.Reset();&#xD;&#xA;  ChatThrottleSW.Start();&#xD;&#xA;}" />
+	  
+	  <If Condition="(bool)Settings[&quot;EnableBankerTimer&quot;] &amp;&amp; &#xD;&#xA;DateTime.Now.Subtract(BankerStartTime).TotalMinutes &gt;= TimeUntilBanker &amp;&amp; &#xD;&#xA;Me.ZoneId != CityZoneID" IgnoreCanRun="True">
+		<CustomAction Code="MyLog(&quot;Hearthing and switching to banker because {0} minutes has elapsed&quot;,TimeUntilBanker);" />
+		<CustomAction Code="Settings[&quot;EmptyBagsNow&quot;] = true;" />
+		<CustomAction Code="Settings[&quot;DoSwitch&quot;] = true;" />
+        <CallSubRoutine SubRoutineName="Hearth" />
+	  </If>
+	  <If Condition="Me.FreeNormalBagSlots &lt;=4 &amp;&amp; Me.ZoneId != CityZoneID" IgnoreCanRun="False">
+        <CustomAction Code="MyLog(&quot;Hearthing because I have only have {0} free bag slots&quot;,Me.FreeNormalBagSlots);" />
         <CallSubRoutine SubRoutineName="Hearth" />
       </If>
       <!--Check if bags are full and not in city. If true then hearth-->
@@ -69,7 +82,7 @@
         <CallSubRoutine SubRoutineName="Hearth" />
       </If>
       <If Condition="((bool)Settings[&quot;EnableZoneTimer&quot;] &amp;&amp;&#xD;&#xA; DateTime.Now.Subtract(ZoneStartTime).TotalMinutes &gt;= TimeToSpendInZone) &amp;&amp; &#xD;&#xA;Me.ZoneId != CityZoneID" IgnoreCanRun="True">
-        <CustomAction Code="MyLog(&quot;Hearthing out of here because I was in zone for {0} minutes&quot;,TimeToSpendInZone);" />
+        <CustomAction Code="MyLog(&quot;Hearthing because I was in zone for {0} minutes&quot;,TimeToSpendInZone);" />
         <CustomAction Code="Settings[&quot;EmptyBagsNow&quot;] = true;" />
         <CallSubRoutine SubRoutineName="Hearth" />
       </If>
@@ -87,8 +100,8 @@
             <CallSubRoutine SubRoutineName="MailItems" />
           </If>
           <!--Log on Banker-->
-          <If Condition="(bool)Settings[&quot;SwitchToBanker&quot;]" IgnoreCanRun="True">
-            <CustomAction Code="MyLog(&quot;Switching to banker&quot;);" />
+          <If Condition="(bool)Settings[&quot;SwitchToBanker&quot;] &amp;&amp; (bool)Settings[&quot;DoSwitch&quot;]" IgnoreCanRun="True">
+            <CustomAction Code="MyLog(&quot;Switching to banker&quot;);&#xD;&#xA;" />
             <CustomAction Code="SwitchCharacter((string)Settings[&quot;BankerName&quot;],Realm,&quot;Combat Bot&quot;);" />
             <WaitAction Condition="!StyxWoW.IsInWorld" Timeout="20000" />
           </If>
@@ -170,6 +183,10 @@
       <!--Log on Farmer-->
       <CustomAction Code="SwitchCharacter((string)Settings[&quot;FarmerName&quot;],Realm,&quot;Gatherbuddy2&quot;);" />
       <WaitAction Condition="!StyxWoW.IsInWorld" Timeout="20000" />
+	  <CustomAction Code="BankerStartTime = DateTime.Now;" />
+	  <If Condition="(int)Settings[&quot;EnableBankerTimer&quot;]">
+		<CustomAction Code="Settings[&quot;DoSwitch&quot;] = false;" />
+	  </If>
     </If>
   </While>
   <SubRoutine SubRoutineName="MailItems">
@@ -256,13 +273,17 @@
 	</If>
   </SubRoutine>
   <SubRoutine SubRoutineName="Hearth">
-    <!--Dismount and use hearthstone-->
-    <If Condition="!Me.IsCasting" IgnoreCanRun="True">
-      <CustomAction Code="Mount.Dismount();" />
-      <CustomAction Code="Lua.DoString(&quot;UseItemByName(6948)&quot;);" />
-      <WaitAction Condition="Me.IsCasting" Timeout="11000" />
-    </If>
-    <WaitAction Condition="Me.ZoneId == CityZoneID" Timeout="20000" />
+	<CustomAction Code="local stone = Me.BagItems.FirstOrDefault(h => h.Entry == 6948);&#xD;&#xA;if(stone != null);&#xD;&#xA;{;&#xD;&#xA;if (stone.CooldownTimeLeft.TotalMilliseconds &lt;= 0)&#xD;&#xA;{;&#xD;&#xA;CanHearth = true;;&#xD;&#xA;}&#xD;&#xA;else;&#xD;&#xA;{;&#xD;&#xA;CanHearth=false;;&#xD;&#xA;MyLog(&quot;Hearthstone still has {0} seconds left on cooldown&quot;,stone.CooldownTimeLeft.TotalMilliseconds*1000)&#xD;&#xA;}&#xD;&#xA;};&#xD;&#xA;else;&#xD;&#xA;{;&#xD;&#xA;Err(&quot;Bags do not contain a hearthstone.&quot;);&#xD;&#xA;};&#xD;&#xA;" />
+	<!--Dismount and use hearthstone-->	
+	<If Condition="(bool)Settings[&quot;CanHearth&quot;]" IgnoreCanRun="True">
+		<If Condition="!Me.IsCasting" IgnoreCanRun="True">
+		  <CustomAction Code="Mount.Dismount();" />
+		  <CustomAction Code="Lua.DoString(&quot;UseItemByName(6948)&quot;);" />
+		  <WaitAction Condition="Me.IsCasting" Timeout="11000" />
+		</If>
+		<WaitAction Condition="Me.ZoneId == CityZoneID" Timeout="20000" />
+	</If>
+	
   </SubRoutine>
   <SubRoutine SubRoutineName="DepositGoldInGbank">
     <CallSubRoutine SubRoutineName="MoveToGbank" />
@@ -420,9 +441,10 @@
     <CustomAction Code="MyLog(&quot;Valley of the Four Winds: {0}&quot;,Settings[&quot;Valley of the Four Winds&quot;]);" />
     <Declaration Code="string Realm;" />
     <Declaration Code="bool OnFarmer;" />
-    <Declaration Code="int CityZoneID,TimeToSpendInZone;" />
+    <Declaration Code="int CityZoneID,TimeToSpendInZone,TimeUntilBanker;" />
     <Declaration Code="List&lt;uint&gt; FarmZoneIDs;" />
     <Declaration Code="DateTime ZoneStartTime;" />
+	<Declaration Code="DateTime BankerStartTime;" />
     <Declaration Code="Stopwatch ChatThrottleSW = new Stopwatch();" />
     <!--store current server name, needed when switching characters.-->
     <CustomAction Code="Realm = Lua.GetReturnVal&lt;string&gt;(&quot;return GetRealmName()&quot;,0);" />
@@ -437,6 +459,11 @@
       <CustomAction Code="TimeToSpendInZone= new Random().Next((int)Settings[&quot;MinMinutesPerZone&quot;],(int)Settings[&quot;MaxMinutesPerZone&quot;]);" />
       <CustomAction Code="MyLog(&quot;I will spend {0} minutes in this zone&quot;,TimeToSpendInZone);" />
       <CustomAction Code="ZoneStartTime = DateTime.Now;" />
+	  <!--Double Random Time-->
+	  <If Condition="(bool)Settings[&quot;EnableBankerTimer&quot;]">
+		  <CustomAction Code="TimeUntilBanker= new Random().Next((int)Settings[&quot;MinMinutesUntilBanker&quot;],(int)Settings[&quot;MaxMinutesUntilBanker&quot;]);" />
+		  <CustomAction Code="MyLog(&quot;{0} minutes until I switch to banker&quot;,TimeUntilBanker);" />
+	  </If>
       <!--Dread Wastes-->
       <CustomAction Code="if ((bool)Settings[&quot;Dread Wastes&quot;]) FarmZoneIDs.Add(6138);" />
       <!--Krasarang Wilds-->
