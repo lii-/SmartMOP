@@ -3,6 +3,7 @@
   <!--ATTENTION: READ BELOW BEFORE YOU START-->
   <!--Set Hearth to Dwarf area in Stormwind if Alliance or Org if horde-->
   <!--Adjust the profile settings especially your banker and farmer name -->
+  <!--Smart farming REQUIRES WoW Data Store addon -->
   <!--if changes are made to settings after profile was running you might need to restart HB (press stop then start)-->
   <!--You must start HB while logged in your farmer-->
   <!--If you customize this profile (change profiles, AH buyout etc) remember to rename so it doesn't get overwritten when you update from svn-->
@@ -19,6 +20,8 @@
     <Settings DefaultValue="0" Type="UInt32" Name="FarmedZone" Summary="Do Not Edit" Category="Misc" Global="False" Hidden="True" />
 	<Settings DefaultValue="true" Type="Boolean" Name="DoSwitch" Summary="Do Not Edit" Category="Misc" Global="False" Hidden="True" />
 	<Settings DefaultValue="100" Type="Int32" Name="FarmersGold" Summary="Amount of gold on farmer" Category="Auction House" Global="False" Hidden="True" />
+	<Settings DefaultValue="60" Type="Int32" Name="Pulse" Summary="Log pulse interval in seconds" Category="Misc" Global="False" Hidden="True" />
+	<Settings DefaultValue="false" Type="Boolean" Name="RefreshDataStore" Summary="Refresh addon datastore" Category="Misc" Global="False" Hidden="False" />
 	
     <Settings DefaultValue="true" Type="Boolean" Name="The Jade Forest" Summary="Farm in The Jade Forest" Category="Pandaria Zones" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="Kun-Lai Summit" Summary="Farm in Kun-Lai Summit" Category="Pandaria Zones" Global="False" Hidden="False" />
@@ -29,7 +32,7 @@
     <Settings DefaultValue="false" Type="Boolean" Name="Vale of Eternal Blossoms" Summary="Farm in Vale of Eternal Blossoms" Category="Pandaria Zones" Global="False" Hidden="False" />
 	
 	<Settings DefaultValue="" Type="String" Name="FarmerName" Summary="The Name of your Farmer" Category="Farmer" Global="False" Hidden="False" />
-    <Settings DefaultValue="false" Type="Boolean" Name="EmptyBagsNow" Summary="Set to true to empty bags now." Category="Farmer" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="EmptyBagsNow" Summary="Set to true to empty bags now." Category="Farmer" Global="False" Hidden="False" />
 	<Settings DefaultValue="true" Type="Boolean" Name="Repair In Cty" Summary="Set to true if you want farmer to repair in the city" Category="Farmer" Global="False" Hidden="False" />
 	<Settings DefaultValue="true" Type="Boolean" Name="EnableZoneTimer" Summary="Set to true to leave zone after random amount of time spent there" Category="Farmer" Global="False" Hidden="False" />
     <Settings DefaultValue="30" Type="Int32" Name="MinMinutesPerZone" Summary="Minimum number of minutes to spend in a zone" Category="Farmer" Global="False" Hidden="False" />
@@ -41,16 +44,18 @@
     <Settings DefaultValue="true" Type="Boolean" Name="SwitchToBanker" Summary="Set this to true if you want to switch to banker to AH items." Category="Banker" Global="False" Hidden="False" />
     <Settings DefaultValue="200" Type="Int32" Name="DepositAllButThisAmountInGBank" Summary="Deposits all gold except this amount." Category="Banker" Global="False" Hidden="False" />
     <Settings DefaultValue="false" Type="Boolean" Name="DepositGoldInGbank" Summary="Set to true if you want the banker to deposit gold in gbank" Category="Banker" Global="False" Hidden="False" />
-	<Settings DefaultValue="false" Type="Boolean" Name="GBankAfterAuctions" Summary="Banker deposits all mail after auctioning completes" Category="Banker" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="SwitchToBankerNow" Summary="Set to true to switch to banker now" Category="Banker" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="GBankAfterAuctions" Summary="Banker deposits all leftover items after auctioning completes" Category="Banker" Global="False" Hidden="False" />
 	<Settings DefaultValue="true" Type="Boolean" Name="EnableBankTimer" Summary="Set to true to switch to banker after random amount of time instead of after zone completion" Category="Banker" Global="False" Hidden="False" />
 	<Settings DefaultValue="120" Type="Int32" Name="MinMinutesUntilBanker" Summary="Minimum number of minutes to wait to switch" Category="Banker" Global="False" Hidden="False" />
     <Settings DefaultValue="270" Type="Int32" Name="MaxMinutesUntilBanker" Summary="Maximum number of minutes to wait to switch" Category="Banker" Global="False" Hidden="False" />
     
     <Settings DefaultValue="Bots\ProfessionBuddy\Profiles\MegaMOP" Type="String" Name="ProfileFolderPath" Summary="This is the path to the base profile folder. Inside are subfolders named after the zones they contain profiles for." Category="Advanced" Global="True" Hidden="False" />
-    <Settings DefaultValue="false" Type="Boolean" Name="AdvancedStashing" Summary="Set to true if you want to use advanced stashing" Category="Advanced" Global="False" Hidden="True" />
+	<Settings DefaultValue="false" Type="Boolean" Name="SmartFarming" Summary="Set to true if you want to farm based on stock" Category="Advanced" Global="False" Hidden="False" />
+	<Settings DefaultValue="98" Type="Int32" Name="StackThreshold" Summary="Number of stacks before we stop farming a particular item. 98 is a guild tab" Category="Advanced" Global="False" Hidden="False" />
 	<Settings DefaultValue="30" Type="Int32" Name="HearthCooldown" Summary="The cooldown on your hearthstone" Category="Advanced" Global="False" Hidden="False" />
 	
-    <Settings DefaultValue="true" Type="Boolean" Name="CancelAuctions" Summary="Set to true to cancel auctions before posting on AH" Category="Auction House" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="CancelAuctions" Summary="Set to true to cancel undercut auctions before posting on AH" Category="Auction House" Global="False" Hidden="False" />
     <Settings DefaultValue="100" Type="Int32" Name="Max Stack Number" Summary="Max number of stacks to post on the AH overall" Category="Auction House" Global="False" Hidden="False" />
 	<!--<Settings DefaultValue="10" Type="Int32" Name="SellAmount" Summary="Set how many stacks to sell of each item" Category="Auction House" Global="False" Hidden="False" />-->
   </SubRoutine>
@@ -66,10 +71,15 @@
     <WaitAction Condition="SecondaryBot.Name == &quot;Gatherbuddy2&quot;" Timeout="20000" />
   </If>
   <While Condition="true" IgnoreCanRun="True">
+	<If Condition="(bool)Settings[&quot;RefreshDataStore&quot;]" IgnoreCanRun="True">
+		<CustomAction Code="RefreshDataStore(); Settings[&quot;RefreshDataStore&quot;] = false; MyLog(&quot;Data Store Refreshed&quot;,0);" />
+		<CallSubRoutine SubRoutineName="PrintInventory" />
+	</If>
     <If Condition="OnFarmer == true" IgnoreCanRun="True">
-      <CustomAction Code="if ((bool)Settings[&quot;EnableZoneTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= 60000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;    TreeRoot.GoalText = string.Format(&quot;Switching zone in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeToSpendInZone - DateTime.Now.Subtract(ZoneStartTime).TotalMinutes));&#xD;&#xA;}" />
-	  <CustomAction Code="if ((bool)Settings[&quot;EnableBankTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= 60000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;    TreeRoot.GoalText = string.Format(&quot;Switching to banker in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeUntilBanker - DateTime.Now.Subtract(BankerStartTime).TotalMinutes));&#xD;&#xA;}" />
-	  <CustomAction Code="if (((bool)Settings[&quot;EnableBankTimer&quot;] || (bool)Settings[&quot;EnableZoneTimer&quot;])  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= 60000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;		ChatThrottleSW.Reset();&#xD;&#xA;  ChatThrottleSW.Start();&#xD;&#xA;}" />
+      <CustomAction Code="if ((bool)Settings[&quot;EnableZoneTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= (int)Settings[&quot;Pulse&quot;]*1000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;   MyLog(&quot;Switching zone in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeToSpendInZone - DateTime.Now.Subtract(ZoneStartTime).TotalMinutes));&#xD;&#xA;}" />
+	  <CustomAction Code="if ((bool)Settings[&quot;EnableBankTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= (int)Settings[&quot;Pulse&quot;]*1000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;    MyLog(&quot;Switching to banker in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeUntilBanker - DateTime.Now.Subtract(BankerStartTime).TotalMinutes));&#xD;&#xA;}" />
+	  <CustomAction Code="if (((bool)Settings[&quot;EnableBankTimer&quot;] || (bool)Settings[&quot;EnableZoneTimer&quot;])  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= (int)Settings[&quot;Pulse&quot;]*1000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;		ChatThrottleSW.Reset();&#xD;&#xA;  ChatThrottleSW.Start();&#xD;&#xA;}" />
+	  <!--<CustomAction Code="var itemTotal= Lua.GetReturnVal&lt;int&gt;(&quot;(int)InGBankCount(72092)+(int)OnAhCount(72092)+(int)InBagCount(72092)&quot;,0); Log(&quot;Total Ghost Iron Ore:{0}&quot;,itemTotal);" />-->
 	 
 	  <If Condition="Me.FreeNormalBagSlots &lt;=4 &amp;&amp; Me.ZoneId != CityZoneID" IgnoreCanRun="False">
         <CustomAction Code="MyLog(&quot;Hearthing because I have only have {0} free bag slots&quot;,Me.FreeNormalBagSlots);" />
@@ -80,7 +90,13 @@
         <CustomAction Code="MyLog(&quot;Hearthing because you forced me to&quot;);" />
         <CallSubRoutine SubRoutineName="Hearth" />
       </If>
-	  <If Condition="(bool)Settings[&quot;EnableBankTimer&quot;] &amp;&amp; &#xD;&#xA;DateTime.Now.Subtract(BankerStartTime).TotalMinutes &gt;= TimeUntilBanker &amp;&amp; &#xD;&#xA;Me.ZoneId != CityZoneID" IgnoreCanRun="True">
+	  <If Condition="(bool)Settings[&quot;SwitchToBankerNow&quot;] &amp;&amp; Me.ZoneId != CityZoneID" IgnoreCanRun="False">
+		<CustomAction Code="MyLog(&quot;Hearthing because you forced me to&quot;);" />
+		<CustomAction Code="Settings[&quot;EmptyBagsNow&quot;] = true;" />
+		<CustomAction Code="Settings[&quot;SwitchToBankerNow&quot;] = false;" />
+        <CallSubRoutine SubRoutineName="Hearth" />
+	  </If>
+	  <If Condition="(bool)Settings[&quot;EnableBankTimer&quot;] &amp;&amp; &#xD;&#xA;DateTime.Now.Subtract(BankerStartTime).TotalMinutes &gt;= TimeUntilBanker &amp;&amp; &#xD;&#xA;Me.ZoneId != CityZoneID &amp;&amp; (bool)Settings[&quot;SwitchToBanker&quot;]" IgnoreCanRun="True">
 		<CustomAction Code="MyLog(&quot;Hearthing and switching to banker because {0} minutes has elapsed&quot;,TimeUntilBanker);" />
 		<CustomAction Code="Settings[&quot;EmptyBagsNow&quot;] = true;" />
 		<CustomAction Code="Settings[&quot;DoSwitch&quot;] = true;" />
@@ -105,7 +121,7 @@
             <CallSubRoutine SubRoutineName="MailItems" />
           </If>
           <!--Log on Banker-->
-          <If Condition="(bool)Settings[&quot;SwitchToBanker&quot;] &amp;&amp; (bool)Settings[&quot;DoSwitch&quot;]" IgnoreCanRun="True">
+          <If Condition="((bool)Settings[&quot;SwitchToBanker&quot;] &amp;&amp; (bool)Settings[&quot;DoSwitch&quot;]) || (bool)Settings[&quot;SwitchToBankerNow&quot;]" IgnoreCanRun="True">
             <CustomAction Code="MyLog(&quot;Switching to banker&quot;);&#xD;&#xA;" />
             <CustomAction Code="SwitchCharacter((string)Settings[&quot;BankerName&quot;],Realm,&quot;Combat Bot&quot;);" />
             <WaitAction Condition="!StyxWoW.IsInWorld" Timeout="20000" />
@@ -127,21 +143,27 @@
           <CallSubRoutine SubRoutineName="Repair" />
         </If>
         <!--Change FarmedZone to the next zone-->
-        <If Condition="!(bool)Settings[&quot;RandomZones&quot;]" IgnoreCanRun="True">
-          <CustomAction Code="uint a = FarmZoneIDs.FirstOrDefault(zone =&gt; zone &gt; (uint)Settings[&quot;FarmedZone&quot;]);&#xD;&#xA;Settings[&quot;FarmedZone&quot;] = a &gt; 0u? a: FarmZoneIDs[0];" />
-        </If>
-        <If Condition="(bool)Settings[&quot;RandomZones&quot;]" IgnoreCanRun="True">
-          <CustomAction Code="int nextZoneI = 0;&#xD;&#xA;if (FarmZoneIDs.Count &gt; 1) &#xD;&#xA;{&#xD;&#xA;  Random r = new Random();&#xD;&#xA;  int index = FarmZoneIDs.IndexOf((uint)Settings[&quot;FarmedZone&quot;]);&#xD;&#xA;  do&#xD;&#xA;  {&#xD;&#xA;    nextZoneI=r.Next(0, FarmZoneIDs.Count);&#xD;&#xA;  }&#xD;&#xA;  while ( nextZoneI== index);&#xD;&#xA;} &#xD;&#xA;Settings[&quot;FarmedZone&quot;] =  FarmZoneIDs[nextZoneI];" />
-        </If>
+		<If Condition="!(bool)Settings[&quot;SmartFarming&quot;]" IgnoreCanRun="True">
+			<If Condition="!(bool)Settings[&quot;RandomZones&quot;]" IgnoreCanRun="True">
+			  <CustomAction Code="uint a = FarmZoneIDs.FirstOrDefault(zone =&gt; zone &gt; (uint)Settings[&quot;FarmedZone&quot;]);&#xD;&#xA;Settings[&quot;FarmedZone&quot;] = a &gt; 0u? a: FarmZoneIDs[0];" />
+			</If>
+			<If Condition="(bool)Settings[&quot;RandomZones&quot;]" IgnoreCanRun="True">
+			  <CustomAction Code="int nextZoneI = 0;&#xD;&#xA;if (FarmZoneIDs.Count &gt; 1) &#xD;&#xA;{&#xD;&#xA;  Random r = new Random();&#xD;&#xA;  int index = FarmZoneIDs.IndexOf((uint)Settings[&quot;FarmedZone&quot;]);&#xD;&#xA;  do&#xD;&#xA;  {&#xD;&#xA;    nextZoneI=r.Next(0, FarmZoneIDs.Count);&#xD;&#xA;  }&#xD;&#xA;  while ( nextZoneI== index);&#xD;&#xA;} &#xD;&#xA;Settings[&quot;FarmedZone&quot;] =  FarmZoneIDs[nextZoneI];" />
+			</If>
+		</If>
+		<If Condition="!(bool)Settings[&quot;SmartFarming&quot;]" IgnoreCanRun="True">
+			<!--Ghost Iron Ore-->
+			<!--<CustomAction Code="var itemTotal = (int)InGBankCount(72092)+(int)OnAHCount(72092)+(int)InBagCount(72092); Log(&quot;Total Ghost Iron Ore:{0}&quot;,itemTotal);" />-->
+			<CustomAction Code="MyLog(&quot;{0}&quot;,FarmZoneYields[6138][72092]);" />
+		</If>
         <CallSubRoutine SubRoutineName="LoadProfile" />
         <If Condition="(bool)Settings[&quot;EnableZoneTimer&quot;]" IgnoreCanRun="True">
           <CustomAction Code="TimeToSpendInZone = new Random().Next((int)Settings[&quot;MinMinutesPerZone&quot;],(int)Settings[&quot;MaxMinutesPerZone&quot;]);" />
           <CustomAction Code="MyLog(&quot;I will spend {0} minutes in this zone&quot;,TimeToSpendInZone);" />
           <CustomAction Code="ZoneStartTime = DateTime.Now;" />
         </If>
-		<If Condition="(bool)Settings[&quot;EnableBankTimer&quot;]" IgnoreCanRun="True">
+		<If Condition="(bool)Settings[&quot;EnableBankTimer&quot;] &amp;&amp; (bool)Settings[&quot;SwitchToBanker&quot;]" IgnoreCanRun="True">
           <CustomAction Code="MyLog(&quot;{0} minutes until I switch to banker&quot;,TimeUntilBanker);" />
-		  
         </If>
         <While Condition="Me.ZoneId == CityZoneID" IgnoreCanRun="True">
           <CallSubRoutine SubRoutineName="Use Portal" />
@@ -151,7 +173,7 @@
     </If>
     <If Condition="OnFarmer == false" IgnoreCanRun="False">
       <If Condition="(bool)Settings[&quot;CancelAuctions&quot;]" IgnoreCanRun="True">
-        <CancelAuctionAction UseCategory="False" Category="TradeGoods" SubCategory="None" SubCategoryType="WoWItemTradeGoodsClass" ItemID="0" AutoFindAh="True" MinBuyout="0g0s0c" Location="0, 0, 0" IgnoreStackSizeBelow="1" />
+        <CancelAuctionAction UseCategory="False" ItemID="0" AutoFindAh="True" MinBuyout="0g0s0c" IgnoreStackSizeBelow="1" />
       </If>
       <!--Get all mail and put it on AH-->
       <If Condition="(bool)Settings[&quot;DepositInGbank&quot;]" IgnoreCanRun="True">
@@ -191,13 +213,25 @@
       <CustomAction Code="SwitchCharacter((string)Settings[&quot;FarmerName&quot;],Realm,&quot;Gatherbuddy2&quot;);" />
       <WaitAction Condition="!StyxWoW.IsInWorld" Timeout="20000" />
 	  <CustomAction Code="BankerStartTime = DateTime.Now;" />
-	  <If Condition="(bool)Settings[&quot;EnableBankTimer&quot;]" IgnoreCanRun="True">
+	  <If Condition="(bool)Settings[&quot;EnableBankTimer&quot;] &amp;&amp; (bool)Settings[&quot;SwitchToBanker&quot;]" IgnoreCanRun="True">
 		<CustomAction Code="Settings[&quot;DoSwitch&quot;] = false;" />
-		<CustomAction Code="BankerStartTime = DateTime.Now;" />
 		<CustomAction Code="TimeUntilBanker = new Random().Next((int)Settings[&quot;MinMinutesUntilBanker&quot;],(int)Settings[&quot;MaxMinutesUntilBanker&quot;]);" />
 	  </If>
     </If>
   </While>
+  <SubRoutine SubRoutineName="PrintInventory">
+	<CustomAction Code="var itemTotal = (float)InGBankCount(72092)+(float)OnAhCount(72092)+(float)InbagCount(72092); MyLog(&quot;Total Ghost Iron:{0}&quot;,itemTotal/20);" />
+	<CustomAction Code="var itemTotal = (float)InGBankCount(72094)+(float)OnAhCount(72094)+(float)InbagCount(72094); MyLog(&quot;Total Black Trillium:{0}&quot;,itemTotal/20);" />
+	<CustomAction Code="var itemTotal = (float)InGBankCount(72103)+(float)OnAhCount(72103)+(float)InbagCount(72103); MyLog(&quot;Total White Trillium:{0}&quot;,itemTotal/20);" />
+	<CustomAction Code="var itemTotal = (float)InGBankCount(72237)+(float)OnAhCount(72237)+(float)InbagCount(72237); MyLog(&quot;Total Rain Poppy:{0}&quot;,itemTotal/20);" />
+	<CustomAction Code="var itemTotal = (float)InGBankCount(72234)+(float)OnAhCount(72234)+(float)InbagCount(72234); MyLog(&quot;Total Green Tea Leaf:{0}&quot;,itemTotal/20);" />
+	<CustomAction Code="var itemTotal = (float)InGBankCount(72235)+(float)OnAhCount(72235)+(float)InbagCount(72235); MyLog(&quot;Total Silkweed:{0}&quot;,itemTotal/20);" />
+	<CustomAction Code="var itemTotal = (float)InGBankCount(79010)+(float)OnAhCount(79010)+(float)InbagCount(79010); MyLog(&quot;Total Snow Lily:{0}&quot;,itemTotal/20);" />
+	<CustomAction Code="var itemTotal = (float)InGBankCount(79011)+(float)OnAhCount(79011)+(float)InbagCount(79011); MyLog(&quot;Total Fool's Cap:{0}&quot;,itemTotal/20);" />
+	<CustomAction Code="var itemTotal = (float)InGBankCount(89639)+(float)OnAhCount(89639)+(float)InbagCount(89639); MyLog(&quot;Total Desecrated Herb:{0}&quot;,itemTotal/20);" />
+	<CustomAction Code="var itemTotal = (float)InGBankCount(72238)+(float)OnAhCount(72238)+(float)InbagCount(72238); MyLog(&quot;Total Golden Lotus:{0}&quot;,itemTotal/20);" />
+	<WaitAction Condition="false" Timeout="2000" />
+  </SubRoutine>
   <SubRoutine SubRoutineName="MailItems">
     <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.SubType == WoWGameObjectType.Mailbox);" Timeout="20000" />
     <GetMailAction GetMailType="AllItems" ItemID="" CheckNewMail="True" MinFreeBagSlots="0" AutoFindMailBox="True" Location="0, 0, 0" />
@@ -210,38 +244,9 @@
       <WaitAction Condition="SecondaryBot.Name == &quot;Combat Bot&quot;" Timeout="20000" />
     </If>
     <CallSubRoutine SubRoutineName="MoveToGbank" />
-	<If Condition="!(bool)Settings[&quot;AdvancedStashing&quot;]" IgnoreCanRun="True">
-		<CustomAction Code="MyLog(&quot;Storing items in GBank&quot;);" />
-		<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-		<PutItemInBankAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-	</If>
-	
-	<If Condition="(bool)Settings[&quot;AdvancedStashing&quot;]" IgnoreCanRun="True">
-		<CustomAction Code="MyLog(&quot;Storing items in GBank (advanced)&quot;);" />
-		<!-- COMMON, ENTIRE TAB -->
-		<!--Ghost Iron Ore-->
-		<PutItemInBankAction Category="TradeGoods" Deposit="All" UseCategory="False" Bank="Guild" ItemID="72092" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-		<!--Green Tea Leaf-->
-		<PutItemInBankAction Category="TradeGoods" Deposit="All" UseCategory="False" Bank="Guild" ItemID="72234" GuildTab="1" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-		<!--Fool's Cap-->
-		<PutItemInBankAction Category="TradeGoods" Deposit="All" UseCategory="False" Bank="Guild" ItemID="79011" GuildTab="2" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-		<!--Silkweed-->
-		<PutItemInBankAction Category="TradeGoods" Deposit="All" UseCategory="False" Bank="Guild" ItemID="72235" GuildTab="3" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-		
-		<!-- UNCOMMON, COMBINE UP TO 2 -->
-		<!--Desecrated Herb-->
-		<PutItemInBankAction Category="TradeGoods" Deposit="All" UseCategory="False" Bank="Guild" ItemID="89639" GuildTab="4" NpcEntry="0" Amount="99" AutoFindBank="True" Location="0, 0, 0" />
-		<!--Snow Lily-->
-		<PutItemInBankAction Category="TradeGoods" Deposit="All" UseCategory="False" Bank="Guild" ItemID="79010" GuildTab="4" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-		<!--Black Trillium Ore-->
-		<PutItemInBankAction Category="TradeGoods" Deposit="All" UseCategory="False" Bank="Guild" ItemID="72094" GuildTab="5" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-		<!--WhiteTrillium Ore-->
-		<PutItemInBankAction Category="TradeGoods" Deposit="All" UseCategory="False" Bank="Guild" ItemID="72103" GuildTab="5" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-		<!--Rain Poppy-->
-		<PutItemInBankAction Category="TradeGoods" Deposit="All" UseCategory="False" Bank="Guild" ItemID="72237" GuildTab="6" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-		<!--Golden Lotus-->
-		<PutItemInBankAction Category="TradeGoods" Deposit="All" UseCategory="False" Bank="Guild" ItemID="72238" GuildTab="6" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-	</If>
+	<CustomAction Code="MyLog(&quot;Storing items in GBank&quot;);" />
+	<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
+	<PutItemInBankAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
 	
     <If Condition="OnFarmer &amp;&amp; SecondaryBot.Name != &quot;Gatherbuddy2&quot;" IgnoreCanRun="True">
       <CustomAction Code="SwitchToBot(&quot;Gatherbuddy2&quot;);" />
@@ -250,42 +255,13 @@
   </SubRoutine>
   <SubRoutine SubRoutineName="WithdrawItemsInGbank">
     <CallSubRoutine SubRoutineName="MoveToGbank" />
-	<If Condition="!(bool)Settings[&quot;AdvancedStashing&quot;]" IgnoreCanRun="True">
 		<CustomAction Code="MyLog(&quot;Getting items from GBank&quot;);" />
 		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="" NpcEntry="0" Amount="0" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-	</If>
-	<If Condition="(bool)Settings[&quot;AdvancedStashing&quot;]" IgnoreCanRun="True">
-		<CustomAction Code="MyLog(&quot;Getting items from GBank (advanced)&quot;);" />
-		<!-- COMMON, ENTIRE TAB -->
-		<!--Ghost Iron Ore-->
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72092" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-		<!--Green Tea Leaf-->
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72234" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-		<!--Fool's Cap-->
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="79011" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-		<!--Silkweed-->
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72235" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-		
-		<!-- UNCOMMON, COMBINE UP TO 2 -->
-		<!--Desecrated Herb-->
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="89639" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-		<!--Snow Lily-->
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="79010" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-		<!--Black Trillium Ore-->
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72094" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-		<!--WhiteTrillium Ore-->
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72103" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-		<!--Rain Poppy-->
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72237" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-		<!--Golden Lotus-->
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="72238" NpcEntry="0" Amount="10" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
-	</If>
   </SubRoutine>
   <SubRoutine SubRoutineName="Hearth">
-	<!--<CustomAction Code="var stone = Me.BagItems.FirstOrDefault(h =&gt; h.Entry == 6948);&#xD;&#xA;		if (stone != null) {&#xD;&#xA;		if (stone.CooldownTimeLeft.TotalMilliseconds &lt;= 0) {&#xD;&#xA;	Settings[&quot;CanHearth&quot;] = true;&#xD;&#xA;}&#xD;&#xA;	else {&#xD;&#xA;	Settings[&quot;CanHearth&quot;]=false;&#xD;&#xA;	MyLog(&quot;Adding {0} minutes to timer, Hearthstone is on cooldown&quot;,stone.CooldownTimeLeft.TotalMilliseconds*60000);&#xD;&#xA;	 Settings[&quot;TimeToSpendInZone&quot;]=stone.CooldownTimeLeft.TotalMilliseconds*60000;&#xD;&#xA;	Settings[&quot;TimeUntilBanker&quot;]=stone.CooldownTimeLeft.TotalMilliseconds*60000;&#xD;&#xA;		Settings[&quot;EmptyBagsNow&quot;] = false;&#xD;&#xA;}&#xD;&#xA;}&#xD;&#xA;	else {&#xD;&#xA;	Settings[&quot;CanHearth&quot;] = false;&#xD;&#xA;	MyLog(&quot;Bags do not contain a Hearthstone.&quot;);&#xD;&#xA;}&#xD;&#xA;" />-->
 	<!--If we have a hearthstone-->
 	<If Condition="InbagCount(6948) &gt; 0" IgnoreCanRun="True">
-		<CustomAction Code="Lua.DoString(&quot;CanHearth = Me.BagItems.FirstOrDefault(i =&gt; i.Entry == 6948).Cooldown == 0&quot;,0);" />
+		<CustomAction Code="CanHearth = Me.BagItems.FirstOrDefault(i =&gt; i.Entry == 6948).Cooldown == 0;" />
 		<!--and it isn't on cooldown-->
 		<If Condition="CanHearth">
 			<!--dismount and use hearthstone-->
@@ -294,6 +270,7 @@
 			  <CustomAction Code="Lua.DoString(&quot;UseItemByName(6948)&quot;);" />
 			  <WaitAction Condition="Me.IsCasting" Timeout="11000" />
 			</If>
+			<CustomAction Code="RefreshDataStore();" />
 			<WaitAction Condition="Me.ZoneId == CityZoneID" Timeout="20000" />
 		</If>
 		<!--otherwise, wait out the cooldown-->
@@ -478,6 +455,10 @@
     <Declaration Code="DateTime ZoneStartTime;" />
 	<Declaration Code="DateTime BankerStartTime;" />
     <Declaration Code="Stopwatch ChatThrottleSW = new Stopwatch();" />
+	<!-- create dictionary of zones and their nodes according to zoneID and itemID. Based on data from WoWhead gatherer DB Feb 24, 2013 -->
+	<!-- ex. FarmZoneYields[ZoneID][ItemID] will give the number of nodes in that zone for that item -->
+	<!-- contains only herbs and ore -->
+	<Declaration Code="static Dictionary&lt;int, Dictionary&lt;int,int&gt;&gt; FarmZoneYields = new Dictionary&lt;int, Dictionary&lt;int,int&gt;&gt; {{6138, new Dictionary&lt;int,int&gt; {{72092,339},{72094,14},{72103,14},{72237,0},{72234,59},{72235,0},{79010,0},{79011,174},{89639,172},{72238,0}}},{6134, new Dictionary&lt;int,int&gt; {{72092,161},{72094,0},{72103,0},{72237,0},{72234,95},{72235,92},{79010,0},{79011,0},{89639,0},{72238,1}}},{5841, new Dictionary&lt;int,int&gt; {{72092,389},{72094,62},{72103,62},{72237,0},{72234,187},{72235,0},{79010,289},{79011,0},{89639,34},{72238,4}}},{5785, new Dictionary&lt;int,int&gt; {{72092,822},{72094,8},{72103,8},{72237,222},{72234,629},{72235,6},{79010,0},{79011,10},{89639,12},{72238,12}}},{5842, new Dictionary&lt;int,int&gt; {{72092,282},{72094,19},{72103,19},{72237,0},{72234,98},{72235,0},{79010,0},{79011,62},{89639,0},{72238,1}}},{5840, new Dictionary&lt;int,int&gt; {{72092,52},{72094,39},{72103,39},{72237,5},{72234,17},{72235,0},{79010,0},{79011,0},{89639,0},{72238,0}}},{5805, new Dictionary&lt;int,int&gt; {{72092,448},{72094,0},{72103,0},{72237,0},{72234,385},{72235,227},{79010,0},{79011,0},{89639,19},{72238,1}}}};" />
     <!--store current server name, needed when switching characters.-->
     <CustomAction Code="Realm = Lua.GetReturnVal&lt;string&gt;(&quot;return GetRealmName()&quot;,0);" />
     <!--set to 'true' if on farmer, otherwise if on banker then it's set to false-->
@@ -496,11 +477,12 @@
 	  <!--Double Random Time-->
 	  <CustomAction Code="TimeUntilBanker= new Random().Next((int)Settings[&quot;MinMinutesUntilBanker&quot;],(int)Settings[&quot;MaxMinutesUntilBanker&quot;]);" />
 	  <CustomAction Code="BankerStartTime = DateTime.Now;" />
-	  <If Condition="(bool)Settings[&quot;EnableBankTimer&quot;]" IgnoreCanRun="True">
+	  <If Condition="(bool)Settings[&quot;EnableBankTimer&quot;] &amp;&amp; (bool)Settings[&quot;SwitchToBanker&quot;]" IgnoreCanRun="True">
 		  <CustomAction Code="Settings[&quot;DoSwitch&quot;] = false;" />
 		  <CustomAction Code="MyLog(&quot;{0} minutes until I switch to banker&quot;,TimeUntilBanker);" />
 	  </If>
-      <!--Dread Wastes-->
+	  
+	 <!--Dread Wastes-->
       <CustomAction Code="if ((bool)Settings[&quot;Dread Wastes&quot;]) FarmZoneIDs.Add(6138);" />
       <!--Krasarang Wilds-->
       <CustomAction Code="if ((bool)Settings[&quot;Krasarang Wilds&quot;]) FarmZoneIDs.Add(6134);" />
