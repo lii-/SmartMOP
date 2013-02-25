@@ -14,14 +14,13 @@
   <!--lii - some good ideas (Highvoltz put this here, I'm not THAT egotistical)-->
   
   <!--TODO-->
-  <!--farm based on stock needs using total stacks available calculate which area would be most efficient-->
   <!--tweak banker code for efficiency mail->AH^until no mail->check for 10 of each auction->if not, go to gbank and withdraw appropriate amount to post, either way deposit leftovers afterwards-->
   <SubRoutine SubRoutineName="Do Not Edit these settings directly!!, Use the 'Settings' Tab instead">
     <Settings DefaultValue="0" Type="UInt32" Name="FarmedZone" Summary="Do Not Edit" Category="Misc" Global="False" Hidden="True" />
 	<Settings DefaultValue="true" Type="Boolean" Name="DoSwitch" Summary="Do Not Edit" Category="Misc" Global="False" Hidden="True" />
 	<Settings DefaultValue="100" Type="Int32" Name="FarmersGold" Summary="Amount of gold on farmer" Category="Auction House" Global="False" Hidden="True" />
 	<Settings DefaultValue="60" Type="Int32" Name="Pulse" Summary="Log pulse interval in seconds" Category="Misc" Global="False" Hidden="True" />
-	<Settings DefaultValue="false" Type="Boolean" Name="RefreshDataStore" Summary="Refresh addon datastore" Category="Misc" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="RefreshDataStore" Summary="Update DataStore DB" Category="Misc" Global="False" Hidden="False" />
 	
     <Settings DefaultValue="true" Type="Boolean" Name="The Jade Forest" Summary="Farm in The Jade Forest" Category="Pandaria Zones" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="Kun-Lai Summit" Summary="Farm in Kun-Lai Summit" Category="Pandaria Zones" Global="False" Hidden="False" />
@@ -61,7 +60,8 @@
     <Settings DefaultValue="270" Type="Int32" Name="MaxMinutesUntilBanker" Summary="Maximum number of minutes to wait to switch" Category="Banker" Global="False" Hidden="False" />
     
     <Settings DefaultValue="Bots\ProfessionBuddy\Profiles\MegaMOP" Type="String" Name="ProfileFolderPath" Summary="This is the path to the base profile folder. Inside are subfolders named after the zones they contain profiles for." Category="Advanced" Global="True" Hidden="False" />
-	<Settings DefaultValue="false" Type="Boolean" Name="SmartFarming" Summary="Set to true if you want to farm based on stock" Category="Advanced" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="SmartFarm" Summary="Set to true if you want to farm based on stock" Category="Advanced" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="VerboseLog" Summary="Set to true if you want to see SmartFarm thinking" Category="Advanced" Global="False" Hidden="False" />
 	<Settings DefaultValue="98" Type="Int32" Name="StackThreshold" Summary="Number of stacks before we stop farming a particular item. 98 is a guild tab" Category="Advanced" Global="False" Hidden="False" />
 	<Settings DefaultValue="30" Type="Int32" Name="HearthCooldown" Summary="The cooldown on your hearthstone" Category="Advanced" Global="False" Hidden="False" />
 	
@@ -82,14 +82,14 @@
   </If>
   <While Condition="true" IgnoreCanRun="True">
 	<If Condition="(bool)Settings[&quot;RefreshDataStore&quot;]" IgnoreCanRun="True">
-		<CustomAction Code="RefreshDataStore(); Settings[&quot;RefreshDataStore&quot;] = false; MyLog(&quot;Data Store Refreshed&quot;,0);" />
-		<CallSubRoutine SubRoutineName="PrintInventory" />
+		<CustomAction Code="MyLog(&quot;{0}&quot;,Lua.GetReturnVal&lt;float&gt;(&quot;return Me.BagItems.FirstOrDefault(i &gt; i.Entry == 6948).Cooldown&quot;,0));"/>
+		<CustomAction Code="Settings[&quot;RefreshDataStore&quot;] = false; SmLog(&quot;Data Store Refreshed&quot;,0);" />
+		<CallSubRoutine SubRoutineName="RefreshStore" />
 	</If>
     <If Condition="OnFarmer == true" IgnoreCanRun="True">
       <CustomAction Code="if ((bool)Settings[&quot;EnableZoneTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= (int)Settings[&quot;Pulse&quot;]*1000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;   MyLog(&quot;Switching zone in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeToSpendInZone - DateTime.Now.Subtract(ZoneStartTime).TotalMinutes));&#xD;&#xA;}" />
 	  <CustomAction Code="if ((bool)Settings[&quot;EnableBankTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= (int)Settings[&quot;Pulse&quot;]*1000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;    MyLog(&quot;Switching to banker in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeUntilBanker - DateTime.Now.Subtract(BankerStartTime).TotalMinutes));&#xD;&#xA;}" />
 	  <CustomAction Code="if (((bool)Settings[&quot;EnableBankTimer&quot;] || (bool)Settings[&quot;EnableZoneTimer&quot;])  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= (int)Settings[&quot;Pulse&quot;]*1000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;		ChatThrottleSW.Reset();&#xD;&#xA;  ChatThrottleSW.Start();&#xD;&#xA;}" />
-	  <!--<CustomAction Code="var itemTotal= Lua.GetReturnVal&lt;int&gt;(&quot;(int)InGBankCount(72092)+(int)OnAhCount(72092)+(int)InBagCount(72092)&quot;,0); Log(&quot;Total Ghost Iron Ore:{0}&quot;,itemTotal);" />-->
 	 
 	  <If Condition="Me.FreeNormalBagSlots &lt;=4 &amp;&amp; Me.ZoneId != CityZoneID" IgnoreCanRun="False">
         <CustomAction Code="MyLog(&quot;Hearthing because I have only have {0} free bag slots&quot;,Me.FreeNormalBagSlots);" />
@@ -154,7 +154,7 @@
           <CallSubRoutine SubRoutineName="Repair" />
         </If>
         <!--Change FarmedZone to the next zone-->
-		<If Condition="!(bool)Settings[&quot;SmartFarming&quot;]" IgnoreCanRun="True">
+		<If Condition="!(bool)Settings[&quot;SmartFarm&quot;]" IgnoreCanRun="True">
 			<If Condition="!(bool)Settings[&quot;RandomZones&quot;]" IgnoreCanRun="True">
 			  <CustomAction Code="uint a = FarmZoneIDs.FirstOrDefault(zone =&gt; zone &gt; (uint)Settings[&quot;FarmedZone&quot;]);&#xD;&#xA;Settings[&quot;FarmedZone&quot;] = a &gt; 0u? a: FarmZoneIDs[0];" />
 			</If>
@@ -162,28 +162,9 @@
 			  <CustomAction Code="int nextZoneI = 0;&#xD;&#xA;if (FarmZoneIDs.Count &gt; 1) &#xD;&#xA;{&#xD;&#xA;  Random r = new Random();&#xD;&#xA;  int index = FarmZoneIDs.IndexOf((uint)Settings[&quot;FarmedZone&quot;]);&#xD;&#xA;  do&#xD;&#xA;  {&#xD;&#xA;    nextZoneI=r.Next(0, FarmZoneIDs.Count);&#xD;&#xA;  }&#xD;&#xA;  while ( nextZoneI== index);&#xD;&#xA;} &#xD;&#xA;Settings[&quot;FarmedZone&quot;] =  FarmZoneIDs[nextZoneI];" />
 			</If>
 		</If>
-		<If Condition="(bool)Settings[&quot;SmartFarming&quot;]" IgnoreCanRun="True">
-			<CustomAction Code="FarmItemIDs.Clear();" />
-			 <!-- Ghost Iron Ore -->
-			  <CustomAction Code="if ((bool)Settings[&quot;Ghost Iron Ore&quot;]) FarmItemIDs.Add(72092);" />
-			  <!-- Trillium Ore -->
-			  <CustomAction Code="if ((bool)Settings[&quot;Trillium Ore&quot;]) FarmItemIDs.Add(72094); FarmItemIDs.Add(72103);" />
-			  <!-- Rain Poppy -->
-			  <CustomAction Code="if ((bool)Settings[&quot;Rain Poppy&quot;]) FarmItemIDs.Add(72237);" />
-			  <!-- Green Tea Leaf -->
-			  <CustomAction Code="if ((bool)Settings[&quot;Green Tea Leaf&quot;]) FarmItemIDs.Add(72234);" />
-			  <!-- Silkweed -->
-			  <CustomAction Code="if ((bool)Settings[&quot;Silkweed&quot;]) FarmItemIDs.Add(72235);" />
-			  <!-- Snow Lily -->
-			  <CustomAction Code="if ((bool)Settings[&quot;Snow Lily&quot;]) FarmItemIDs.Add(79010);" />
-			  <!-- Fool's Cap -->
-			  <CustomAction Code="if ((bool)Settings[&quot;Fool's Cap&quot;]) FarmItemIDs.Add(79011);" />
-			  <!-- Desecrated Herb -->
-			  <CustomAction Code="if ((bool)Settings[&quot;Desecrated Herb&quot;]) FarmItemIDs.Add(89639);" />
-			  <!-- Golden Lotus -->
-			<CustomAction Code="if ((bool)Settings[&quot;Golden Lotus&quot;]) FarmItemIDs.Add(72238);" />
-			<CustomAction Code="NeededStock.Clear(); foreach (var i in FarmZoneYields[6138].Keys) {float temp=(((float)InGBankCount(i)+(float)OnAhCount(i)+(float)InbagCount(i))/20/(int)Settings[&quot;StackThreshold&quot;])*100; 	if (temp &lt; 100 &amp;&amp; FarmItemIDs.Contains(i)) {NeededStock.Add(i,temp); 	MyLog(&quot;Need {0}, have {1}% of stock&quot;,TranslateIDs[i],(int)temp);}}		Dictionary&lt;uint,float&gt; ZoneConfidence = new Dictionary&lt;uint,float&gt;();		foreach (var i in FarmZoneYields.Keys) {foreach (var j in FarmZoneYields[i].Keys) {var iValue = FarmZoneYields[i]; var jValue = FarmZoneYields[i][j];	foreach (var k in NeededStock.Keys) {if (j == k &amp;&amp; (bool)Settings[TranslateIDs[i]] &amp;&amp; jValue &gt; 0) {if (!ZoneConfidence.ContainsKey(i)) {ZoneConfidence.Add(i,0);}	float con = (float)(Math.Pow(NeededStock[k],2))/jValue;	ZoneConfidence[i] += con;	MyLog(&quot;{0}: {1} ({2})&quot;,TranslateIDs[i],TranslateIDs[j],con);}}}	if (ZoneConfidence.ContainsKey(i)) {MyLog(&quot;{0}:{1}&quot;,TranslateIDs[i],ZoneConfidence[i]);}}		 uint min = (uint)ZoneConfidence.Select(x =&gt; x.Key).ToList().Max();	Settings[&quot;FarmedZone&quot;]=min;		MyLog(&quot;Chose {0} to farm next&quot;,TranslateIDs[min]);" />
-			<WaitAction Condition="false" Timeout="5000" />
+		<If Condition="(bool)Settings[&quot;SmartFarm&quot;]" IgnoreCanRun="True">
+			<CallSubRoutine SubRoutineName="RefreshStore" />
+			<CallSubRoutine SubRoutineName="SmartFarm" />
 		</If>
         <CallSubRoutine SubRoutineName="LoadProfile" />
         <If Condition="(bool)Settings[&quot;EnableZoneTimer&quot;]" IgnoreCanRun="True">
@@ -248,8 +229,33 @@
 	  </If>
     </If>
   </While>
-  <SubRoutine SubRoutineName="PrintInventory">
-	<CustomAction Code="NeededStock.Clear(); foreach (var i in FarmZoneYields[6138].Keys) {float temp=(((float)InGBankCount(i)+(float)OnAhCount(i)+(float)InbagCount(i))/20/(int)Settings[&quot;StackThreshold&quot;])*100; 	if (temp &lt; 100 &amp;&amp; FarmItemIDs.Contains(i)) {NeededStock.Add(i,temp); 	MyLog(&quot;Need {0}, have {1}% of stock&quot;,TranslateIDs[i],(int)temp);}}" />
+  <SubRoutine SubRoutineName="SmartFarm">
+	<CustomAction Code="FarmItemIDs.Clear();" />
+	 <!-- Ghost Iron Ore -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Ghost Iron Ore&quot;]) FarmItemIDs.Add(72092);" />
+	  <!-- Trillium Ore -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Trillium Ore&quot;]) FarmItemIDs.Add(72094); FarmItemIDs.Add(72103);" />
+	  <!-- Rain Poppy -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Rain Poppy&quot;]) FarmItemIDs.Add(72237);" />
+	  <!-- Green Tea Leaf -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Green Tea Leaf&quot;]) FarmItemIDs.Add(72234);" />
+	  <!-- Silkweed -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Silkweed&quot;]) FarmItemIDs.Add(72235);" />
+	  <!-- Snow Lily -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Snow Lily&quot;]) FarmItemIDs.Add(79010);" />
+	  <!-- Fool's Cap -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Fool's Cap&quot;]) FarmItemIDs.Add(79011);" />
+	  <!-- Desecrated Herb -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Desecrated Herb&quot;]) FarmItemIDs.Add(89639);" />
+	  <!-- Golden Lotus -->
+	<CustomAction Code="if ((bool)Settings[&quot;Golden Lotus&quot;]) FarmItemIDs.Add(72238);" />
+	<!-- Choose the next zone based on Node frequency and stock percentages -->
+	<CustomAction Code="Dictionary&lt;uint,float&gt; ZoneConfidence = new Dictionary&lt;uint,float&gt;();		foreach (var i in FarmZoneYields.Keys) {foreach (var j in FarmZoneYields[i].Keys) {var iValue = FarmZoneYields[i]; var jValue = FarmZoneYields[i][j];	foreach (var k in NeededStock.Keys) {if (j == k &amp;&amp; (bool)Settings[TranslateIDs[i]] &amp;&amp; jValue &gt; 0) {if (!ZoneConfidence.ContainsKey(i)) {ZoneConfidence.Add(i,0);}	float con = (float)(Math.Pow(NeededStock[k],2))/jValue;	ZoneConfidence[i] += con;	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}: {1} ({2})&quot;,TranslateIDs[i],TranslateIDs[j],con);}}}}	if (ZoneConfidence.ContainsKey(i) &amp;&amp; (bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}:{1}&quot;,TranslateIDs[i],ZoneConfidence[i]);}}		 uint min = (uint)ZoneConfidence.Select(x =&gt; x.Key).ToList().Max();	Settings[&quot;FarmedZone&quot;]=min;		SmLog(&quot;SmartFarm: Chose {0} to farm next&quot;,TranslateIDs[min]);" />
+	<WaitAction Condition="false" Timeout="5000" />
+  </SubRoutine>
+  <SubRoutine SubRoutineName="RefreshStore">
+	<CustomAction Code="RefreshDataStore();" />
+	<CustomAction Code="NeededStock.Clear(); foreach (var i in FarmZoneYields[6138].Keys) {float temp=(((float)InGBankCount(i)+(float)OnAhCount(i)+(float)InbagCount(i))/20/(int)Settings[&quot;StackThreshold&quot;])*100; 	if (temp &lt; 100 &amp;&amp; FarmItemIDs.Contains(i)) {NeededStock.Add(i,temp); 	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;Need {0}, have {1}% of stock&quot;,TranslateIDs[i],(int)temp);}}}" />
 	<WaitAction Condition="false" Timeout="3000" />
   </SubRoutine>
   <SubRoutine SubRoutineName="MailItems">
@@ -298,7 +304,7 @@
 			<CustomAction Code="MyLog(&quot;Hearthstone is on cooldown&quot;,0);"/>
 			<If Condition="TimeToSpendInZone &lt;= (int)Settings[&quot;HearthCooldown&quot;]" IgnoreCanRun="True">
 				<CustomAction Code="TimeToSpendInZone=(int)Settings[&quot;HearthCooldown&quot;];" />
-				<CustomAction Code="MyLog(&quot;I will spend {0} more minutes in this zone&quot;, Settings[&quot;HearthCooldown&quot;]);"/>
+				<CustomAction Code="MyLog(&quot;{0}&quot;,Lua.GetReturnVal&lt;float&gt;(&quot;return Me.BagItems.FirstOrDefault(i &gt; i.Entry == 6948).Cooldown&quot;,0));"/>
 			</If>
 			<If Condition="TimeUntilBanker &lt;= (int)Settings[&quot;HearthCooldown&quot;]" IgnoreCanRun="True">
 				<CustomAction Code="TimeUntilBanker=(int)Settings[&quot;HearthCooldown&quot;];" />
@@ -495,15 +501,11 @@
       <!--Random Time-->
       <CustomAction Code="TimeToSpendInZone= new Random().Next((int)Settings[&quot;MinMinutesPerZone&quot;],(int)Settings[&quot;MaxMinutesPerZone&quot;]);" />
 	  <CustomAction Code="ZoneStartTime = DateTime.Now;" />
-	  <If Condition="(bool)Settings[&quot;EnableZoneTimer&quot;]" IgnoreCanRun="True">
-		  <CustomAction Code="MyLog(&quot;I will spend {0} minutes in this zone&quot;,TimeToSpendInZone);" />
-	  </If>
 	  <!--Double Random Time-->
 	  <CustomAction Code="TimeUntilBanker= new Random().Next((int)Settings[&quot;MinMinutesUntilBanker&quot;],(int)Settings[&quot;MaxMinutesUntilBanker&quot;]);" />
 	  <CustomAction Code="BankerStartTime = DateTime.Now;" />
 	  <If Condition="(bool)Settings[&quot;EnableBankTimer&quot;] &amp;&amp; (bool)Settings[&quot;SwitchToBanker&quot;]" IgnoreCanRun="True">
 		  <CustomAction Code="Settings[&quot;DoSwitch&quot;] = false;" />
-		  <CustomAction Code="MyLog(&quot;{0} minutes until I switch to banker&quot;,TimeUntilBanker);" />
 	  </If>
 	  
 	  <!-- Ghost Iron Ore -->
@@ -545,11 +547,11 @@
         <CustomAction Code="MyLog(&quot;Trying to be funny or something? How can you expect to farm anything with all zones disabled?&quot;);" />
         <CustomAction Code="TreeRoot.Stop();" />
       </If>
-      <If Condition="FarmZoneIDs.Contains(Me.ZoneId)" IgnoreCanRun="True">
+      <If Condition="FarmZoneIDs.Contains(Me.ZoneId) &amp;&amp; !(bool)Settings[&quot;SmartFarm&quot;]" IgnoreCanRun="True">
         <CustomAction Code="Settings[&quot;FarmedZone&quot;] = Me.ZoneId;" />
       </If>
-      <If Condition="Me.ZoneId != CityZoneID &amp;&amp; !FarmZoneIDs.Contains(Me.ZoneId)" IgnoreCanRun="True">
-        <CustomAction Code="MyLog(&quot;Hearthing since bot isn't in capital or one of the farmed zones&quot;);" />
+      <If Condition="(Me.ZoneId != CityZoneID &amp;&amp; !FarmZoneIDs.Contains(Me.ZoneId)) || (bool)Settings[&quot;SmartFarm&quot;]" IgnoreCanRun="True">
+        <CustomAction Code="MyLog(&quot;Hearthing since bot isn't in capital or one of the farmed zones or SmartFarm is enabled&quot;);" />
         <CallSubRoutine SubRoutineName="Hearth" />
       </If>
     </If>
@@ -814,6 +816,7 @@
     <SellItemAction Sell="All" NpcEntry="0" Location="0, 0, 0" SellItemType="Specific" ItemID="63122" Count="0" />
   </SubRoutine>
   <Declaration Code="void MyLog(string format,params object[] args)&#xD;&#xA;        {&#xD;&#xA;            Log(Colors.Green,&quot;Multiprofile: &quot;,Colors.LightGreen,format,args);&#xD;&#xA;        }&#xD;&#xA;" />
+  <Declaration Code="void SmLog(string format,params object[] args)&#xD;&#xA;        {&#xD;&#xA;            Log(Colors.Yellow,&quot;SmartFarm: &quot;,Colors.LightYellow,format,args);&#xD;&#xA;        }&#xD;&#xA;" />
   <Declaration Code="void Err(string format,params object[] args)&#xD;&#xA;        {&#xD;&#xA;            Log(Colors.Green,&quot;Multiprofile: &quot;,Colors.Red,format,args);&#xD;&#xA;        }&#xD;&#xA;" />
   <Declaration Code="uint TotalItemsInBag()&#xD;&#xA;        {&#xD;&#xA;            uint cnt=0;&#xD;&#xA;            foreach (var item in Me.BagItems)&#xD;&#xA;                 cnt += item.StackCount;&#xD;&#xA;            return cnt;&#xD;&#xA;        }&#xD;&#xA;" />
   <Declaration Code="        void LoadPorfileFromSubfolder(string folder)&#xD;&#xA;        {&#xD;&#xA;            string path = (string)Settings[&quot;ProfileFolderPath&quot;];&#xD;&#xA;            bool isAbsolute = System.IO.Path.IsPathRooted(path);&#xD;&#xA;            if (!isAbsolute)&#xD;&#xA;                path = System.IO.Path.Combine(Utilities.AssemblyDirectory, path);&#xD;&#xA;            path = System.IO.Path.Combine(path, folder);&#xD;&#xA;            path = System.IO.Path.Combine(path, Me.IsHorde ? &quot;Horde&quot; : &quot;Alliance&quot;);&#xD;&#xA;            if (System.IO.Directory.Exists(path))&#xD;&#xA;            {&#xD;&#xA;                string[] files = System.IO.Directory.GetFiles(path, &quot;*.xml&quot;, System.IO.SearchOption.TopDirectoryOnly);&#xD;&#xA;                if (files != null &amp;&amp; files.Length &gt; 0)&#xD;&#xA;                {&#xD;&#xA;                    int index = new Random().Next(0, files.Length);&#xD;&#xA;                    ProfileManager.LoadNew(files[index]);&#xD;&#xA;                    MyLog(&quot;Loading profile for zone: {0}&quot;, folder);&#xD;&#xA;                }&#xD;&#xA;                else&#xD;&#xA;                    Err(&quot;no profiles found in path: {0}&quot;, path);&#xD;&#xA;            }&#xD;&#xA;            else&#xD;&#xA;                MyLog(&quot;ProfilePath: {0} not found&quot;, path);&#xD;&#xA;        }" />
