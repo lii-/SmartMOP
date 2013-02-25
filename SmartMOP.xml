@@ -31,6 +31,16 @@
     <Settings DefaultValue="false" Type="Boolean" Name="Krasarang Wilds" Summary="Farm in Krasarang Wilds" Category="Pandaria Zones" Global="False" Hidden="False" />
     <Settings DefaultValue="false" Type="Boolean" Name="Vale of Eternal Blossoms" Summary="Farm in Vale of Eternal Blossoms" Category="Pandaria Zones" Global="False" Hidden="False" />
 	
+	<Settings DefaultValue="true" Type="Boolean" Name="Ghost Iron Ore" Summary="Farm Ghost Iron Ore" Category="Pandaria Items" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Trillium Ore" Summary="Farm Trillium Ore" Category="Pandaria Items" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Rain Poppy" Summary="Farm Rain Poppy" Category="Pandaria Items" Global="False" Hidden="False" />
+	<Settings DefaultValue="true" Type="Boolean" Name="Snow Lily" Summary="Farm Snow Lily" Category="Pandaria Items" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Green Tea Leaf" Summary="Farm Green Tea Leaf" Category="Pandaria Items" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Silkweed" Summary="Farm Silkweed" Category="Pandaria Items" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Fool's Cap" Summary="Farm Fool's Cap" Category="Pandaria Items" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Desecrated Herb" Summary="Farm Desecrated Herb" Category="Pandaria Items" Global="False" Hidden="False" />
+	<Settings DefaultValue="true" Type="Boolean" Name="Golden Lotus" Summary="Farm Golden Lotus" Category="Pandaria Items" Global="False" Hidden="False" />
+	
 	<Settings DefaultValue="" Type="String" Name="FarmerName" Summary="The Name of your Farmer" Category="Farmer" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="EmptyBagsNow" Summary="Set to true to empty bags now." Category="Farmer" Global="False" Hidden="False" />
 	<Settings DefaultValue="true" Type="Boolean" Name="Repair In Cty" Summary="Set to true if you want farmer to repair in the city" Category="Farmer" Global="False" Hidden="False" />
@@ -93,7 +103,7 @@
 	  <If Condition="(bool)Settings[&quot;SwitchToBankerNow&quot;] &amp;&amp; Me.ZoneId != CityZoneID" IgnoreCanRun="False">
 		<CustomAction Code="MyLog(&quot;Hearthing because you forced me to&quot;);" />
 		<CustomAction Code="Settings[&quot;EmptyBagsNow&quot;] = true;" />
-		<CustomAction Code="Settings[&quot;SwitchToBankerNow&quot;] = false;" />
+		<CustomAction Code="Settings[&quot;DoSwitch&quot;] = true;" />
         <CallSubRoutine SubRoutineName="Hearth" />
 	  </If>
 	  <If Condition="(bool)Settings[&quot;EnableBankTimer&quot;] &amp;&amp; &#xD;&#xA;DateTime.Now.Subtract(BankerStartTime).TotalMinutes &gt;= TimeUntilBanker &amp;&amp; &#xD;&#xA;Me.ZoneId != CityZoneID &amp;&amp; (bool)Settings[&quot;SwitchToBanker&quot;]" IgnoreCanRun="True">
@@ -111,7 +121,7 @@
       <!--Check if we're in factions capital city. Stormwind = 1519. Org = 1637-->
       <If Condition="Me.ZoneId == CityZoneID" IgnoreCanRun="True">
         <!--On Farmer-->
-        <If Condition="Me.FreeNormalBagSlots &lt;=15 || (bool)Settings[&quot;EmptyBagsNow&quot;]" IgnoreCanRun="True">
+        <If Condition="Me.FreeNormalBagSlots &lt;=15 || (bool)Settings[&quot;EmptyBagsNow&quot;] || (bool)Settings[&quot;SwitchToBankerNow&quot;]" IgnoreCanRun="True">
           <!--Save the amount of gold on farmer-->
           <CustomAction Code="Settings[&quot;FarmersGold&quot;] = (int)Me.Gold;" />
           <If Condition="(bool)Settings[&quot;DepositInGbank&quot;]" IgnoreCanRun="True">
@@ -122,6 +132,7 @@
           </If>
           <!--Log on Banker-->
           <If Condition="((bool)Settings[&quot;SwitchToBanker&quot;] &amp;&amp; (bool)Settings[&quot;DoSwitch&quot;]) || (bool)Settings[&quot;SwitchToBankerNow&quot;]" IgnoreCanRun="True">
+			<CustomAction Code="Settings[&quot;SwitchToBankerNow&quot;] = false;" />
             <CustomAction Code="MyLog(&quot;Switching to banker&quot;);&#xD;&#xA;" />
             <CustomAction Code="SwitchCharacter((string)Settings[&quot;BankerName&quot;],Realm,&quot;Combat Bot&quot;);" />
             <WaitAction Condition="!StyxWoW.IsInWorld" Timeout="20000" />
@@ -151,10 +162,28 @@
 			  <CustomAction Code="int nextZoneI = 0;&#xD;&#xA;if (FarmZoneIDs.Count &gt; 1) &#xD;&#xA;{&#xD;&#xA;  Random r = new Random();&#xD;&#xA;  int index = FarmZoneIDs.IndexOf((uint)Settings[&quot;FarmedZone&quot;]);&#xD;&#xA;  do&#xD;&#xA;  {&#xD;&#xA;    nextZoneI=r.Next(0, FarmZoneIDs.Count);&#xD;&#xA;  }&#xD;&#xA;  while ( nextZoneI== index);&#xD;&#xA;} &#xD;&#xA;Settings[&quot;FarmedZone&quot;] =  FarmZoneIDs[nextZoneI];" />
 			</If>
 		</If>
-		<If Condition="!(bool)Settings[&quot;SmartFarming&quot;]" IgnoreCanRun="True">
-			<!--Ghost Iron Ore-->
-			<!--<CustomAction Code="var itemTotal = (int)InGBankCount(72092)+(int)OnAHCount(72092)+(int)InBagCount(72092); Log(&quot;Total Ghost Iron Ore:{0}&quot;,itemTotal);" />-->
-			<CustomAction Code="MyLog(&quot;{0}&quot;,FarmZoneYields[6138][72092]);" />
+		<If Condition="(bool)Settings[&quot;SmartFarming&quot;]" IgnoreCanRun="True">
+			<CustomAction Code="FarmItemIDs.Clear();" />
+			 <!-- Ghost Iron Ore -->
+			  <CustomAction Code="if ((bool)Settings[&quot;Ghost Iron Ore&quot;]) FarmItemIDs.Add(72092);" />
+			  <!-- Trillium Ore -->
+			  <CustomAction Code="if ((bool)Settings[&quot;Trillium Ore&quot;]) FarmItemIDs.Add(72094); FarmItemIDs.Add(72103);" />
+			  <!-- Rain Poppy -->
+			  <CustomAction Code="if ((bool)Settings[&quot;Rain Poppy&quot;]) FarmItemIDs.Add(72237);" />
+			  <!-- Green Tea Leaf -->
+			  <CustomAction Code="if ((bool)Settings[&quot;Green Tea Leaf&quot;]) FarmItemIDs.Add(72234);" />
+			  <!-- Silkweed -->
+			  <CustomAction Code="if ((bool)Settings[&quot;Silkweed&quot;]) FarmItemIDs.Add(72235);" />
+			  <!-- Snow Lily -->
+			  <CustomAction Code="if ((bool)Settings[&quot;Snow Lily&quot;]) FarmItemIDs.Add(79010);" />
+			  <!-- Fool's Cap -->
+			  <CustomAction Code="if ((bool)Settings[&quot;Fool's Cap&quot;]) FarmItemIDs.Add(79011);" />
+			  <!-- Desecrated Herb -->
+			  <CustomAction Code="if ((bool)Settings[&quot;Desecrated Herb&quot;]) FarmItemIDs.Add(89639);" />
+			  <!-- Golden Lotus -->
+			<CustomAction Code="if ((bool)Settings[&quot;Golden Lotus&quot;]) FarmItemIDs.Add(72238);" />
+			<CustomAction Code="NeededStock.Clear(); foreach (var i in FarmZoneYields[6138].Keys) {float temp=(((float)InGBankCount(i)+(float)OnAhCount(i)+(float)InbagCount(i))/20/(int)Settings[&quot;StackThreshold&quot;])*100; 	if (temp &lt; 100 &amp;&amp; FarmItemIDs.Contains(i)) {NeededStock.Add(i,temp); 	MyLog(&quot;Need {0}, have {1}% of stock&quot;,TranslateIDs[i],(int)temp);}}		Dictionary&lt;uint,float&gt; ZoneConfidence = new Dictionary&lt;uint,float&gt;();		foreach (var i in FarmZoneYields.Keys) {foreach (var j in FarmZoneYields[i].Keys) {var iValue = FarmZoneYields[i]; var jValue = FarmZoneYields[i][j];	foreach (var k in NeededStock.Keys) {if (j == k &amp;&amp; (bool)Settings[TranslateIDs[i]] &amp;&amp; jValue &gt; 0) {if (!ZoneConfidence.ContainsKey(i)) {ZoneConfidence.Add(i,0);}	float con = (float)(Math.Pow(NeededStock[k],2))/jValue;	ZoneConfidence[i] += con;	MyLog(&quot;{0}: {1} ({2})&quot;,TranslateIDs[i],TranslateIDs[j],con);}}}	if (ZoneConfidence.ContainsKey(i)) {MyLog(&quot;{0}:{1}&quot;,TranslateIDs[i],ZoneConfidence[i]);}}		 uint min = (uint)ZoneConfidence.Select(x =&gt; x.Key).ToList().Max();	Settings[&quot;FarmedZone&quot;]=min;		MyLog(&quot;Chose {0} to farm next&quot;,TranslateIDs[min]);" />
+			<WaitAction Condition="false" Timeout="5000" />
 		</If>
         <CallSubRoutine SubRoutineName="LoadProfile" />
         <If Condition="(bool)Settings[&quot;EnableZoneTimer&quot;]" IgnoreCanRun="True">
@@ -220,17 +249,8 @@
     </If>
   </While>
   <SubRoutine SubRoutineName="PrintInventory">
-	<CustomAction Code="var itemTotal = (float)InGBankCount(72092)+(float)OnAhCount(72092)+(float)InbagCount(72092); MyLog(&quot;Total Ghost Iron:{0}&quot;,itemTotal/20);" />
-	<CustomAction Code="var itemTotal = (float)InGBankCount(72094)+(float)OnAhCount(72094)+(float)InbagCount(72094); MyLog(&quot;Total Black Trillium:{0}&quot;,itemTotal/20);" />
-	<CustomAction Code="var itemTotal = (float)InGBankCount(72103)+(float)OnAhCount(72103)+(float)InbagCount(72103); MyLog(&quot;Total White Trillium:{0}&quot;,itemTotal/20);" />
-	<CustomAction Code="var itemTotal = (float)InGBankCount(72237)+(float)OnAhCount(72237)+(float)InbagCount(72237); MyLog(&quot;Total Rain Poppy:{0}&quot;,itemTotal/20);" />
-	<CustomAction Code="var itemTotal = (float)InGBankCount(72234)+(float)OnAhCount(72234)+(float)InbagCount(72234); MyLog(&quot;Total Green Tea Leaf:{0}&quot;,itemTotal/20);" />
-	<CustomAction Code="var itemTotal = (float)InGBankCount(72235)+(float)OnAhCount(72235)+(float)InbagCount(72235); MyLog(&quot;Total Silkweed:{0}&quot;,itemTotal/20);" />
-	<CustomAction Code="var itemTotal = (float)InGBankCount(79010)+(float)OnAhCount(79010)+(float)InbagCount(79010); MyLog(&quot;Total Snow Lily:{0}&quot;,itemTotal/20);" />
-	<CustomAction Code="var itemTotal = (float)InGBankCount(79011)+(float)OnAhCount(79011)+(float)InbagCount(79011); MyLog(&quot;Total Fool's Cap:{0}&quot;,itemTotal/20);" />
-	<CustomAction Code="var itemTotal = (float)InGBankCount(89639)+(float)OnAhCount(89639)+(float)InbagCount(89639); MyLog(&quot;Total Desecrated Herb:{0}&quot;,itemTotal/20);" />
-	<CustomAction Code="var itemTotal = (float)InGBankCount(72238)+(float)OnAhCount(72238)+(float)InbagCount(72238); MyLog(&quot;Total Golden Lotus:{0}&quot;,itemTotal/20);" />
-	<WaitAction Condition="false" Timeout="2000" />
+	<CustomAction Code="NeededStock.Clear(); foreach (var i in FarmZoneYields[6138].Keys) {float temp=(((float)InGBankCount(i)+(float)OnAhCount(i)+(float)InbagCount(i))/20/(int)Settings[&quot;StackThreshold&quot;])*100; 	if (temp &lt; 100 &amp;&amp; FarmItemIDs.Contains(i)) {NeededStock.Add(i,temp); 	MyLog(&quot;Need {0}, have {1}% of stock&quot;,TranslateIDs[i],(int)temp);}}" />
+	<WaitAction Condition="false" Timeout="3000" />
   </SubRoutine>
   <SubRoutine SubRoutineName="MailItems">
     <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.SubType == WoWGameObjectType.Mailbox);" Timeout="20000" />
@@ -451,15 +471,18 @@
     <Declaration Code="string Realm;" />
     <Declaration Code="bool OnFarmer,CanHearth;" />
     <Declaration Code="int CityZoneID,TimeToSpendInZone,TimeUntilBanker;" />
-    <Declaration Code="List&lt;uint&gt; FarmZoneIDs;" />
+    <Declaration Code="List&lt;uint&gt; FarmZoneIDs;"	/>
+	<Declaration Code="List&lt;uint&gt; FarmItemIDs;" />
     <Declaration Code="DateTime ZoneStartTime;" />
 	<Declaration Code="DateTime BankerStartTime;" />
     <Declaration Code="Stopwatch ChatThrottleSW = new Stopwatch();" />
 	<!-- create dictionary of zones and their nodes according to zoneID and itemID. Based on data from WoWhead gatherer DB Feb 24, 2013 -->
 	<!-- ex. FarmZoneYields[ZoneID][ItemID] will give the number of nodes in that zone for that item -->
 	<!-- contains only herbs and ore -->
-	<Declaration Code="static Dictionary&lt;int, Dictionary&lt;int,int&gt;&gt; FarmZoneYields = new Dictionary&lt;int, Dictionary&lt;int,int&gt;&gt; {{6138, new Dictionary&lt;int,int&gt; {{72092,339},{72094,14},{72103,14},{72237,0},{72234,59},{72235,0},{79010,0},{79011,174},{89639,172},{72238,0}}},{6134, new Dictionary&lt;int,int&gt; {{72092,161},{72094,0},{72103,0},{72237,0},{72234,95},{72235,92},{79010,0},{79011,0},{89639,0},{72238,1}}},{5841, new Dictionary&lt;int,int&gt; {{72092,389},{72094,62},{72103,62},{72237,0},{72234,187},{72235,0},{79010,289},{79011,0},{89639,34},{72238,4}}},{5785, new Dictionary&lt;int,int&gt; {{72092,822},{72094,8},{72103,8},{72237,222},{72234,629},{72235,6},{79010,0},{79011,10},{89639,12},{72238,12}}},{5842, new Dictionary&lt;int,int&gt; {{72092,282},{72094,19},{72103,19},{72237,0},{72234,98},{72235,0},{79010,0},{79011,62},{89639,0},{72238,1}}},{5840, new Dictionary&lt;int,int&gt; {{72092,52},{72094,39},{72103,39},{72237,5},{72234,17},{72235,0},{79010,0},{79011,0},{89639,0},{72238,0}}},{5805, new Dictionary&lt;int,int&gt; {{72092,448},{72094,0},{72103,0},{72237,0},{72234,385},{72235,227},{79010,0},{79011,0},{89639,19},{72238,1}}}};" />
-    <!--store current server name, needed when switching characters.-->
+	<Declaration Code="static Dictionary&lt;uint, Dictionary&lt;uint,uint&gt;&gt; FarmZoneYields = new Dictionary&lt;uint, Dictionary&lt;uint,uint&gt;&gt; {{6138, new Dictionary&lt;uint,uint&gt; {{72092,339},{72094,14},{72103,14},{72237,0},{72234,59},{72235,0},{79010,0},{79011,174},{89639,172},{72238,0}}},{6134, new Dictionary&lt;uint,uint&gt; {{72092,161},{72094,0},{72103,0},{72237,0},{72234,95},{72235,92},{79010,0},{79011,0},{89639,0},{72238,1}}},{5841, new Dictionary&lt;uint,uint&gt; {{72092,389},{72094,62},{72103,62},{72237,0},{72234,187},{72235,0},{79010,289},{79011,0},{89639,34},{72238,4}}},{5785, new Dictionary&lt;uint,uint&gt; {{72092,822},{72094,8},{72103,8},{72237,222},{72234,629},{72235,6},{79010,0},{79011,10},{89639,12},{72238,12}}},{5842, new Dictionary&lt;uint,uint&gt; {{72092,282},{72094,19},{72103,19},{72237,0},{72234,98},{72235,0},{79010,0},{79011,62},{89639,0},{72238,1}}},{5840, new Dictionary&lt;uint,uint&gt; {{72092,52},{72094,39},{72103,39},{72237,5},{72234,17},{72235,0},{79010,0},{79011,0},{89639,0},{72238,0}}},{5805, new Dictionary&lt;uint,uint&gt; {{72092,448},{72094,0},{72103,0},{72237,0},{72234,385},{72235,227},{79010,0},{79011,0},{89639,19},{72238,1}}}};" />
+    <Declaration Code="static Dictionary&lt;uint,string&gt; TranslateIDs = new Dictionary&lt;uint,string&gt; {{72092,&quot;Ghost Iron Ore&quot;},{72094,&quot;White Trillium Ore&quot;},{72103,&quot;Black Trillium Ore&quot;},{72237,&quot;Rain Poppy&quot;},{72234,&quot;Green Tea Leaf&quot;},{72235,&quot;Silkweed&quot;},{79010,&quot;Snow Lily&quot;},{79011,&quot;Fool's Cap&quot;},{89639,&quot;Desecrated Herb&quot;},{72238,&quot;Golden Lotus&quot;},{6138,&quot;Dread Wastes&quot;},{6134,&quot;Krasarang Wilds&quot;},{5841,&quot;Kun-Lai Summit&quot;},{5785,&quot;The Jade Forest&quot;},{5842,&quot;Townlong Steppes&quot;},{5840,&quot;Vale of Eternal Blossoms&quot;},{5805,&quot;Valley of the Four Winds&quot;}};" />
+	<Declaration Code="Dictionary&lt;uint,float&gt; NeededStock = new Dictionary&lt;uint,float&gt;();" />
+   <!--store current server name, needed when switching characters.-->
     <CustomAction Code="Realm = Lua.GetReturnVal&lt;string&gt;(&quot;return GetRealmName()&quot;,0);" />
     <!--set to 'true' if on farmer, otherwise if on banker then it's set to false-->
     <CustomAction Code="OnFarmer = Lua.GetReturnVal&lt;string&gt;(&quot;return UnitName('player')&quot;,0).Equals((string)Settings[&quot;FarmerName&quot;],StringComparison.InvariantCultureIgnoreCase);" />
@@ -467,6 +490,7 @@
     <CustomAction Code="CityZoneID = Me.IsAlliance? 1519:1637;" />
     <!--List of zones IDs that we will farm in accending numerical order-->
     <CustomAction Code="FarmZoneIDs = new List&lt;uint&gt;();" />
+	<CustomAction Code="FarmItemIDs = new List&lt;uint&gt;();" />
     <If Condition="OnFarmer" IgnoreCanRun="True">
       <!--Random Time-->
       <CustomAction Code="TimeToSpendInZone= new Random().Next((int)Settings[&quot;MinMinutesPerZone&quot;],(int)Settings[&quot;MaxMinutesPerZone&quot;]);" />
@@ -482,6 +506,24 @@
 		  <CustomAction Code="MyLog(&quot;{0} minutes until I switch to banker&quot;,TimeUntilBanker);" />
 	  </If>
 	  
+	  <!-- Ghost Iron Ore -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Ghost Iron Ore&quot;]) FarmItemIDs.Add(72092);" />
+	  <!-- Trillium Ore -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Trillium Ore&quot;]) FarmItemIDs.Add(72094); FarmItemIDs.Add(72103);" />
+	  <!-- Rain Poppy -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Rain Poppy&quot;]) FarmItemIDs.Add(72237);" />
+	  <!-- Green Tea Leaf -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Green Tea Leaf&quot;]) FarmItemIDs.Add(72234);" />
+	  <!-- Silkweed -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Silkweed&quot;]) FarmItemIDs.Add(72235);" />
+	  <!-- Snow Lily -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Snow Lily&quot;]) FarmItemIDs.Add(79010);" />
+	  <!-- Fool's Cap -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Fool's Cap&quot;]) FarmItemIDs.Add(79011);" />
+	  <!-- Desecrated Herb -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Desecrated Herb&quot;]) FarmItemIDs.Add(89639);" />
+	  <!-- Golden Lotus -->
+	  <CustomAction Code="if ((bool)Settings[&quot;Golden Lotus&quot;]) FarmItemIDs.Add(72238);" />
 	 <!--Dread Wastes-->
       <CustomAction Code="if ((bool)Settings[&quot;Dread Wastes&quot;]) FarmZoneIDs.Add(6138);" />
       <!--Krasarang Wilds-->
