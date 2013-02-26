@@ -82,8 +82,7 @@
   </If>
   <While Condition="true" IgnoreCanRun="True">
 	<If Condition="(bool)Settings[&quot;RefreshDataStore&quot;]" IgnoreCanRun="True">
-		<CustomAction Code="MyLog(&quot;{0}&quot;,Lua.GetReturnVal&lt;float&gt;(&quot;return Me.BagItems.FirstOrDefault(i &gt; i.Entry == 6948).Cooldown&quot;,0));"/>
-		<CustomAction Code="Settings[&quot;RefreshDataStore&quot;] = false; SmLog(&quot;Data Store Refreshed&quot;,0);" />
+		<CustomAction Code="Settings[&quot;RefreshDataStore&quot;] = false;" />
 		<CallSubRoutine SubRoutineName="RefreshStore" />
 	</If>
     <If Condition="OnFarmer == true" IgnoreCanRun="True">
@@ -250,12 +249,12 @@
 	  <!-- Golden Lotus -->
 	<CustomAction Code="if ((bool)Settings[&quot;Golden Lotus&quot;]) FarmItemIDs.Add(72238);" />
 	<!-- Choose the next zone based on node frequency and stock percentages -->
-	<CustomAction Code="Dictionary&lt;uint,float&gt; ZoneConfidence = new Dictionary&lt;uint,float&gt;();		foreach (var i in FarmZoneYields.Keys) {foreach (var j in FarmZoneYields[i].Keys) {uint cnt=0; var iValue = FarmZoneYields[i]; var jValue = FarmZoneYields[i][j];	foreach (var k in NeededStock.Keys) {if (j == k &amp;&amp; (bool)Settings[TranslateIDs[i]] &amp;&amp; jValue &gt; 0) {if (!ZoneConfidence.ContainsKey(i)) {ZoneConfidence.Add(i,0);}	float con = (float)NeededStock[k]/(Math.Pow(jValue,2)+1);	cnt+=1;    ZoneConfidence[i] += con;	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}: {1} ({2})&quot;,TranslateIDs[i],TranslateIDs[j],con);}}}}	if (ZoneConfidence.ContainsKey(i) &amp;&amp; (bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}:{1}&quot;,TranslateIDs[i],ZoneConfidence[i]);}	ZoneConfidence[i]=ZoneConfidence[i]/cnt;}		 uint min = (uint)ZoneConfidence.Select(x =&gt; x.Key).ToList().Max();	Settings[&quot;FarmedZone&quot;]=min;		SmLog(&quot;SmartFarm: Chose {0} to farm next&quot;,TranslateIDs[min]);" />
+	<CustomAction Code="Dictionary&lt;uint,float&gt; ZoneConfidence = new Dictionary&lt;uint,float&gt;();		foreach (var i in FarmZoneYields.Keys) {foreach (var j in FarmZoneYields[i].Keys) {var iValue = FarmZoneYields[i]; var jValue = FarmZoneYields[i][j];	foreach (var k in NeededStock.Keys) {if (j == k &amp;&amp; (bool)Settings[TranslateIDs[i]] &amp;&amp; jValue &gt; 0) {if (!ZoneConfidence.ContainsKey(i)) {ZoneConfidence.Add(i,0);}	float con = (float)(NeededStock[k]/(Math.Pow(jValue,2)+1));    ZoneConfidence[i] += con;	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}: {1} ({2})&quot;,TranslateIDs[i],TranslateIDs[j],con);}}}}	if (ZoneConfidence.ContainsKey(i) &amp;&amp; (bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}:{1}&quot;,TranslateIDs[i],ZoneConfidence[i]);}	ZoneConfidence[i]=ZoneConfidence[i];}		 uint min = (uint)ZoneConfidence.Select(x =&gt; x.Key).ToList().Max();	Settings[&quot;FarmedZone&quot;]=min;		SmLog(&quot;SmartFarm: Chose {0} to farm next&quot;,TranslateIDs[min]);" />
 	<WaitAction Condition="false" Timeout="5000" />
   </SubRoutine>
   <SubRoutine SubRoutineName="RefreshStore">
 	<CustomAction Code="RefreshDataStore();" />
-	<CustomAction Code="NeededStock.Clear(); foreach (var i in FarmZoneYields[6138].Keys) {float temp=(((float)InGBankCount(i)+(float)OnAhCount(i)+(float)InbagCount(i))/20/(int)Settings[&quot;StackThreshold&quot;])*100; 	if (temp &lt; 100 &amp;&amp; FarmItemIDs.Contains(i)) {NeededStock.Add(i,temp); 	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;Need {0}, have {1}% of stock&quot;,TranslateIDs[i],(int)temp);}}}" />
+	<CustomAction Code="NeededStock.Clear(); foreach (var i in FarmZoneYields[6138].Keys) {float temp=(((float)InGBankCount(i)+(float)OnAhCount(i)+(float)InbagCount(i))/20/(int)Settings[&quot;StackThreshold&quot;])*100; 	if (temp &lt; 100 &amp;&amp; FarmItemIDs.Contains(i)) {NeededStock.Add(i,temp); 	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;Need {0}, have {1}% of stock&quot;,TranslateIDs[i],(int)temp);}}}		SmLog(&quot;Data Store Refreshed&quot;,0);" />
 	<WaitAction Condition="false" Timeout="3000" />
   </SubRoutine>
   <SubRoutine SubRoutineName="MailItems">
@@ -304,7 +303,7 @@
 			<CustomAction Code="MyLog(&quot;Hearthstone is on cooldown&quot;,0);"/>
 			<If Condition="TimeToSpendInZone &lt;= (int)Settings[&quot;HearthCooldown&quot;]" IgnoreCanRun="True">
 				<CustomAction Code="TimeToSpendInZone=(int)Settings[&quot;HearthCooldown&quot;];" />
-				<CustomAction Code="MyLog(&quot;{0}&quot;,Lua.GetReturnVal&lt;float&gt;(&quot;return Me.BagItems.FirstOrDefault(i &gt; i.Entry == 6948).Cooldown&quot;,0));"/>
+				<CustomAction Code="MyLog(&quot;{0} more minutes until I switch zones&quot;, Settings[&quot;HearthCooldown&quot;]);"/>
 			</If>
 			<If Condition="TimeUntilBanker &lt;= (int)Settings[&quot;HearthCooldown&quot;]" IgnoreCanRun="True">
 				<CustomAction Code="TimeUntilBanker=(int)Settings[&quot;HearthCooldown&quot;];" />
