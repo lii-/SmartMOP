@@ -32,15 +32,15 @@
 	
 	<Settings DefaultValue="false" Type="Boolean" Name="SmartFarm" Summary="Set to true if you want to farm based on stock" Category="SmartFarm" Global="False" Hidden="False" />
 	<Settings DefaultValue="false" Type="Boolean" Name="VerboseLog" Summary="Set to true if you want to see SmartFarm thinking" Category="SmartFarm" Global="False" Hidden="False" />
-	<!-- Warning: Enabling statistically insignificant items such as golden lotus may have unexpected results -->
+	<!-- Warning: Enabling golden lotus may have unexpected results -->
 	<Settings DefaultValue="true" Type="Boolean" Name="Ghost Iron Ore" Summary="Take Ghost Iron Ore into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
-    <Settings DefaultValue="false" Type="Boolean" Name="Trillium Ore" Summary="Take Trillium Ore into account when determining the next farm zone" Category="SmartFarm" Global="true" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Trillium Ore" Summary="Take Trillium Ore into account when determining the next farm zone" Category="SmartFarm" Global="true" Hidden="True" />
     <Settings DefaultValue="true" Type="Boolean" Name="Rain Poppy" Summary="Take Rain Poppy into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
 	<Settings DefaultValue="true" Type="Boolean" Name="Snow Lily" Summary="Take Snow Lily into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="Green Tea Leaf" Summary="Take Green Tea Leaf into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="Silkweed" Summary="Take Silkweed into account when determining the next farm zone" Category="PSmartFarm" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="Fool's Cap" Summary="Take Fool's Cap into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
-    <Settings DefaultValue="false" Type="Boolean" Name="Desecrated Herb" Summary="Take Desecrated Herb into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="true" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Desecrated Herb" Summary="Take Desecrated Herb into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="false" />
 	<Settings DefaultValue="false" Type="Boolean" Name="Golden Lotus" Summary="Take Golden Lotus into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="true" />
 	
 	<Settings DefaultValue="" Type="String" Name="FarmerName" Summary="The Name of your Farmer" Category="Farmer" Global="False" Hidden="False" />
