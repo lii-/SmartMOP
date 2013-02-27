@@ -68,7 +68,7 @@
 	<Settings DefaultValue="120" Type="Int32" Name="MinMinutesUntilBanker" Summary="Minimum number of minutes to wait to switch" Category="Banker" Global="False" Hidden="False" />
     <Settings DefaultValue="270" Type="Int32" Name="MaxMinutesUntilBanker" Summary="Maximum number of minutes to wait to switch" Category="Banker" Global="False" Hidden="False" />
     
-    <Settings DefaultValue="Bots\ProfessionBuddy\Profiles\MegaMOP" Type="String" Name="ProfileFolderPath" Summary="This is the path to the base profile folder. Inside are subfolders named after the zones they contain profiles for." Category="Advanced" Global="True" Hidden="False" />
+    <Settings DefaultValue="Bots\ProfessionBuddy\Profiles\SmartMOP" Type="String" Name="ProfileFolderPath" Summary="This is the path to the base profile folder. Inside are subfolders named after the zones they contain profiles for." Category="Advanced" Global="True" Hidden="False" />
 	<Settings DefaultValue="30" Type="Int32" Name="HearthCooldown" Summary="The cooldown on your hearthstone" Category="Advanced" Global="False" Hidden="False" />
 	
     <Settings DefaultValue="true" Type="Boolean" Name="CancelAuctions" Summary="Set to true to cancel undercut auctions before posting on AH" Category="Auction House" Global="False" Hidden="False" />
