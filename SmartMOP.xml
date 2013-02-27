@@ -20,7 +20,6 @@
 	<Settings DefaultValue="true" Type="Boolean" Name="DoSwitch" Summary="Do Not Edit" Category="Misc" Global="False" Hidden="True" />
 	<Settings DefaultValue="100" Type="Int32" Name="FarmersGold" Summary="Amount of gold on farmer" Category="Auction House" Global="False" Hidden="True" />
 	<Settings DefaultValue="60" Type="Int32" Name="Pulse" Summary="Log pulse interval in seconds" Category="Misc" Global="False" Hidden="True" />
-	<Settings DefaultValue="false" Type="Boolean" Name="RefreshDataStore" Summary="Update DataStore DB" Category="Misc" Global="False" Hidden="False" />
 	
     <Settings DefaultValue="true" Type="Boolean" Name="The Jade Forest" Summary="Farm in The Jade Forest" Category="Pandaria Zones" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="Kun-Lai Summit" Summary="Farm in Kun-Lai Summit" Category="Pandaria Zones" Global="False" Hidden="False" />
@@ -30,18 +29,21 @@
     <Settings DefaultValue="false" Type="Boolean" Name="Krasarang Wilds" Summary="Farm in Krasarang Wilds" Category="Pandaria Zones" Global="False" Hidden="False" />
     <Settings DefaultValue="false" Type="Boolean" Name="Vale of Eternal Blossoms" Summary="Farm in Vale of Eternal Blossoms" Category="Pandaria Zones" Global="False" Hidden="False" />
 	
-	<Settings DefaultValue="false" Type="Boolean" Name="SmartFarm" Summary="Set to true if you want to farm based on stock" Category="SmartFarm" Global="False" Hidden="False" />
+	<Settings DefaultValue="98" Type="Int32" Name="StackThreshold" Summary="Number of stacks before we stop farming a particular item. 98 is a guild tab" Category="SmartFarm" Global="False" Hidden="False" />
+	<Settings DefaultValue="10" Type="Int32" Name="RandomZoneThreshold" Summary="The required standard deviation of stock before we start using SmartFarm. Don't modify unless you know what you're doing" Category="SmartFarm" Global="False" Hidden="True" />
+	<Settings DefaultValue="1" Type="Int32" Name="ExcludeThreshold" Summary="The number of completed stock items required before we start using SmartFarm. With all nodes enabled, 9 means we never use it" Category="SmartFarm" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="SmartFarm" Summary="Set to true to activate SmartFarm. Farms herbs and ore based on stock" Category="SmartFarm" Global="False" Hidden="False" />
 	<Settings DefaultValue="false" Type="Boolean" Name="VerboseLog" Summary="Set to true if you want to see SmartFarm thinking" Category="SmartFarm" Global="False" Hidden="False" />
-	<!-- Warning: Enabling golden lotus may have unexpected results -->
-	<Settings DefaultValue="true" Type="Boolean" Name="Ghost Iron Ore" Summary="Take Ghost Iron Ore into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Trillium Ore" Summary="Take Trillium Ore into account when determining the next farm zone" Category="SmartFarm" Global="true" Hidden="True" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Rain Poppy" Summary="Take Rain Poppy into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
-	<Settings DefaultValue="true" Type="Boolean" Name="Snow Lily" Summary="Take Snow Lily into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Green Tea Leaf" Summary="Take Green Tea Leaf into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Silkweed" Summary="Take Silkweed into account when determining the next farm zone" Category="PSmartFarm" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Fool's Cap" Summary="Take Fool's Cap into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Desecrated Herb" Summary="Take Desecrated Herb into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="false" />
-	<Settings DefaultValue="false" Type="Boolean" Name="Golden Lotus" Summary="Take Golden Lotus into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="true" />
+	<Settings DefaultValue="false" Type="Boolean" Name="RefreshDataStore" Summary="Update DataStore DB" Category="SmartFarm" Global="False" Hidden="False" />
+	<Settings DefaultValue="true" Type="Boolean" Name="Ghost Iron Ore" Summary="Take Ghost Iron Ore into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Trillium Ore" Summary="Take Trillium Ore into account when determining the next farm zone" Category="SmartFarm Nodes" Global="true" Hidden="True" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Rain Poppy" Summary="Take Rain Poppy into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="False" />
+	<Settings DefaultValue="true" Type="Boolean" Name="Snow Lily" Summary="Take Snow Lily into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Green Tea Leaf" Summary="Take Green Tea Leaf into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Silkweed" Summary="Take Silkweed into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Fool's Cap" Summary="Take Fool's Cap into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Desecrated Herb" Summary="Take Desecrated Herb into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="false" />
+	<Settings DefaultValue="true" Type="Boolean" Name="Golden Lotus" Summary="Take Golden Lotus into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="False" />
 	
 	<Settings DefaultValue="" Type="String" Name="FarmerName" Summary="The Name of your Farmer" Category="Farmer" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="EmptyBagsNow" Summary="Set to true to empty bags now." Category="Farmer" Global="False" Hidden="False" />
@@ -63,15 +65,12 @@
     <Settings DefaultValue="270" Type="Int32" Name="MaxMinutesUntilBanker" Summary="Maximum number of minutes to wait to switch" Category="Banker" Global="False" Hidden="False" />
     
     <Settings DefaultValue="Bots\ProfessionBuddy\Profiles\MegaMOP" Type="String" Name="ProfileFolderPath" Summary="This is the path to the base profile folder. Inside are subfolders named after the zones they contain profiles for." Category="Advanced" Global="True" Hidden="False" />
-	
-	<Settings DefaultValue="98" Type="Int32" Name="StackThreshold" Summary="Number of stacks before we stop farming a particular item. 98 is a guild tab" Category="Advanced" Global="False" Hidden="False" />
 	<Settings DefaultValue="30" Type="Int32" Name="HearthCooldown" Summary="The cooldown on your hearthstone" Category="Advanced" Global="False" Hidden="False" />
 	
     <Settings DefaultValue="true" Type="Boolean" Name="CancelAuctions" Summary="Set to true to cancel undercut auctions before posting on AH" Category="Auction House" Global="False" Hidden="False" />
     <Settings DefaultValue="100" Type="Int32" Name="Max Stack Number" Summary="Max number of stacks to post on the AH overall" Category="Auction House" Global="False" Hidden="False" />
-	<!--<Settings DefaultValue="10" Type="Int32" Name="SellAmount" Summary="Set how many stacks to sell of each item" Category="Auction House" Global="False" Hidden="False" />-->
+	<Settings DefaultValue="10" Type="Int32" Name="StackAmount" Summary="The amount of stacks to sell of each item" Category="Auction House" Global="False" Hidden="False" />-->
   </SubRoutine>
-  <LoadProfileAction ProfileType="Honorbuddy" Path="HBProfiles\GatheringProfiles\Uldum\Alliance\(GB2)(Uldum.Nuetral)Mines&amp;Herbs.xml" />
   <If Condition="!Me.Name.Equals((string)Settings[&quot;FarmerName&quot;],StringComparison.InvariantCultureIgnoreCase) " IgnoreCanRun="True">
     <CustomAction Code="MessageBox.Show(&quot;Switch to your farmer before starting this multiprofile. Must restart HB&quot;);TreeRoot.Stop();" />
   </If>
@@ -86,6 +85,7 @@
 	<If Condition="(bool)Settings[&quot;RefreshDataStore&quot;]" IgnoreCanRun="True">
 		<CustomAction Code="Settings[&quot;RefreshDataStore&quot;] = false;" />
 		<CallSubRoutine SubRoutineName="RefreshStore" />
+		<CallSubRoutine SubRoutineName="SmartFarm" /> <!-- remove on release -->
 	</If>
     <If Condition="OnFarmer == true" IgnoreCanRun="True">
       <CustomAction Code="if ((bool)Settings[&quot;EnableZoneTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= (int)Settings[&quot;Pulse&quot;]*1000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;   MyLog(&quot;Switching zone in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeToSpendInZone - DateTime.Now.Subtract(ZoneStartTime).TotalMinutes));&#xD;&#xA;}" />
@@ -183,6 +183,7 @@
       <!--On Banker-->
     </If>
     <If Condition="OnFarmer == false" IgnoreCanRun="False">
+	<CallSubRoutine SubRoutineName="ResetAHCounts" />
       <If Condition="(bool)Settings[&quot;CancelAuctions&quot;]" IgnoreCanRun="True">
         <CancelAuctionAction UseCategory="False" ItemID="0" AutoFindAh="True" MinBuyout="0g0s0c" IgnoreStackSizeBelow="1" />
       </If>
@@ -231,33 +232,36 @@
     </If>
   </While>
   <SubRoutine SubRoutineName="SmartFarm">
-	<CustomAction Code="FarmItemIDs.Clear();" />
-	 <!-- Ghost Iron Ore -->
-	  <CustomAction Code="if ((bool)Settings[&quot;Ghost Iron Ore&quot;]) FarmItemIDs.Add(72092);" />
-	  <!-- Trillium Ore -->
-	  <CustomAction Code="if ((bool)Settings[&quot;Trillium Ore&quot;]) FarmItemIDs.Add(72094); FarmItemIDs.Add(72103);" />
-	  <!-- Rain Poppy -->
-	  <CustomAction Code="if ((bool)Settings[&quot;Rain Poppy&quot;]) FarmItemIDs.Add(72237);" />
-	  <!-- Green Tea Leaf -->
-	  <CustomAction Code="if ((bool)Settings[&quot;Green Tea Leaf&quot;]) FarmItemIDs.Add(72234);" />
-	  <!-- Silkweed -->
-	  <CustomAction Code="if ((bool)Settings[&quot;Silkweed&quot;]) FarmItemIDs.Add(72235);" />
-	  <!-- Snow Lily -->
-	  <CustomAction Code="if ((bool)Settings[&quot;Snow Lily&quot;]) FarmItemIDs.Add(79010);" />
-	  <!-- Fool's Cap -->
-	  <CustomAction Code="if ((bool)Settings[&quot;Fool's Cap&quot;]) FarmItemIDs.Add(79011);" />
-	  <!-- Desecrated Herb -->
-	  <CustomAction Code="if ((bool)Settings[&quot;Desecrated Herb&quot;]) FarmItemIDs.Add(89639);" />
-	  <!-- Golden Lotus -->
-	<CustomAction Code="if ((bool)Settings[&quot;Golden Lotus&quot;]) FarmItemIDs.Add(72238);" />
-	<!-- Choose the next zone based on node frequency and stock percentages -->
-	<CustomAction Code="Dictionary&lt;uint,float&gt; ZoneConfidence = new Dictionary&lt;uint,float&gt;();		foreach (var i in FarmZoneYields.Keys) {foreach (var j in FarmZoneYields[i].Keys) {var iValue = FarmZoneYields[i]; var jValue = FarmZoneYields[i][j];	foreach (var k in NeededStock.Keys) {if (j == k &amp;&amp; (bool)Settings[TranslateIDs[i]] &amp;&amp; jValue &gt; 0) {if (!ZoneConfidence.ContainsKey(i)) {ZoneConfidence.Add(i,0);}	float con = (float)(NeededStock[k]/(Math.Pow(jValue,2)+1));    ZoneConfidence[i] += con;	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}: {1} ({2})&quot;,TranslateIDs[i],TranslateIDs[j],con);}}}}	if (ZoneConfidence.ContainsKey(i) &amp;&amp; (bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}:{1}&quot;,TranslateIDs[i],ZoneConfidence[i]);}	ZoneConfidence[i]=ZoneConfidence[i];}		 uint min = (uint)ZoneConfidence.Select(x =&gt; x.Key).ToList().Max();	Settings[&quot;FarmedZone&quot;]=min;		SmLog(&quot;SmartFarm: Chose {0} to farm next&quot;,TranslateIDs[min]);" />
-	<WaitAction Condition="false" Timeout="5000" />
+	<If Condition="(bool)Settings[&quot;RandomZones&quot;]" IgnoreCanRun="True">
+		<CustomAction Code="int nextZoneI = 0;&#xD;&#xA;if (FarmZoneIDs.Count &gt; 1) &#xD;&#xA;{&#xD;&#xA;  Random r = new Random();&#xD;&#xA;  int index = FarmZoneIDs.IndexOf((uint)Settings[&quot;FarmedZone&quot;]);&#xD;&#xA;  do&#xD;&#xA;  {&#xD;&#xA;    nextZoneI=r.Next(0, FarmZoneIDs.Count);&#xD;&#xA;  }&#xD;&#xA;  while ( nextZoneI== index);&#xD;&#xA;} &#xD;&#xA;Settings[&quot;FarmedZone&quot;] =  FarmZoneIDs[nextZoneI];" />
+	</If>
+	<If Condition="!(bool)Settings[&quot;RandomZones&quot;]" IgnoreCanRun="True">
+		<CustomAction Code="FarmItemIDs.Clear();" />
+		 <!-- Ghost Iron Ore -->
+		  <CustomAction Code="if ((bool)Settings[&quot;Ghost Iron Ore&quot;]) FarmItemIDs.Add(72092);" />
+		  <!-- Trillium Ore -->
+		  <CustomAction Code="if ((bool)Settings[&quot;Trillium Ore&quot;]) FarmItemIDs.Add(72094); FarmItemIDs.Add(72103);" />
+		  <!-- Rain Poppy -->
+		  <CustomAction Code="if ((bool)Settings[&quot;Rain Poppy&quot;]) FarmItemIDs.Add(72237);" />
+		  <!-- Green Tea Leaf -->
+		  <CustomAction Code="if ((bool)Settings[&quot;Green Tea Leaf&quot;]) FarmItemIDs.Add(72234);" />
+		  <!-- Silkweed -->
+		  <CustomAction Code="if ((bool)Settings[&quot;Silkweed&quot;]) FarmItemIDs.Add(72235);" />
+		  <!-- Snow Lily -->
+		  <CustomAction Code="if ((bool)Settings[&quot;Snow Lily&quot;]) FarmItemIDs.Add(79010);" />
+		  <!-- Fool's Cap -->
+		  <CustomAction Code="if ((bool)Settings[&quot;Fool's Cap&quot;]) FarmItemIDs.Add(79011);" />
+		  <!-- Desecrated Herb -->
+		  <CustomAction Code="if ((bool)Settings[&quot;Desecrated Herb&quot;]) FarmItemIDs.Add(89639);" />
+		  <!-- Golden Lotus -->
+		<CustomAction Code="if ((bool)Settings[&quot;Golden Lotus&quot;]) FarmItemIDs.Add(72238);" />
+		<!-- Choose the next zone based on node frequency and stock percentages -->
+		<CustomAction Code="SortedDictionary&lt;uint,float&gt; ZoneConfidence = new SortedDictionary&lt;uint,float&gt;();	int cnt=0;		foreach (var i in FarmZoneYields.Keys) {foreach (var j in FarmZoneYields[i].Keys) {var iValue = FarmZoneYields[i]; var jValue = FarmZoneYields[i][j];	foreach (var k in NeededStock.Keys) {if (j == k &amp;&amp; (bool)Settings[TranslateIDs[i]] &amp;&amp; jValue &gt; 0) {if (!ZoneConfidence.ContainsKey(i)) {ZoneConfidence.Add(i,0);}	cnt+=1;		float con = (float)((100-NeededStock[k])*2+(jValue/10));   ZoneConfidence[i] += con;	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}: {1} ({2})&quot;,TranslateIDs[i],TranslateIDs[j],con);}}}}	if (ZoneConfidence.ContainsKey(i) &amp;&amp; (bool)Settings[&quot;VerboseLog&quot;]) {ZoneConfidence[i] /= cnt;		SmLog(&quot;{0}: {1}&quot;,TranslateIDs[i],ZoneConfidence[i]);	cnt=0;}}		 var final = ZoneConfidence.Where(i =&gt; i.Value == ZoneConfidence.Values.Max()).Select(i =&gt; i.Key).FirstOrDefault();		Settings[&quot;FarmedZone&quot;]=(uint)final;		SmLog(&quot;Chose {0} to farm next&quot;,TranslateIDs[final]);" />
+	</If>
   </SubRoutine>
   <SubRoutine SubRoutineName="RefreshStore">
-	<CustomAction Code="RefreshDataStore();" />
-	<CustomAction Code="NeededStock.Clear(); foreach (var i in FarmZoneYields[6138].Keys) {float temp=(((float)InGBankCount(i)+(float)OnAhCount(i)+(float)InbagCount(i))/20/(int)Settings[&quot;StackThreshold&quot;])*100; 	if (temp &lt; 100 &amp;&amp; FarmItemIDs.Contains(i)) {NeededStock.Add(i,temp); 	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;Need {0}, have {1}% of stock&quot;,TranslateIDs[i],(int)temp);}}}		SmLog(&quot;Data Store Refreshed&quot;,0);" />
-	<WaitAction Condition="false" Timeout="3000" />
+	<CustomAction Code="RefreshDataStore(); 	SmLog(&quot;Data Store Refreshed&quot;);" />
+	<CustomAction Code="NeededStock.Clear(); 	Settings[&quot;RandomZones&quot;]=false;	List&lt;float&gt; STDCheckLoL = new List&lt;float&gt;(); float Average=0; int ExcludeCount=0;		foreach (var i in FarmZoneYields[6138].Keys) {float temp=(((float)InGBankCount(i)+(float)OnAhCount(i)+(float)InbagCount(i))/20/(int)Settings[&quot;StackThreshold&quot;])*100; 		if (i == 72238) {temp*=20;}		if (FarmItemIDs.Contains(i)) {STDCheckLoL.Add(temp); Average+=temp;}		if (temp &gt;= 100) {ExcludeCount+=1;}		if (temp &lt; 100 &amp;&amp; FarmItemIDs.Contains(i)) {NeededStock.Add(i,temp); 	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;Need {0}, have {1}% of stock&quot;,TranslateIDs[i],(int)temp);}}}				Average/=STDCheckLoL.Count; float std=0; for(var y=0; y &lt; STDCheckLoL.Count; y++) {STDCheckLoL[y] = (float)Math.Pow(STDCheckLoL[y]-Average,2);		std+=STDCheckLoL[y];}		std = (int)Math.Sqrt(std/STDCheckLoL.Count);		if (std &lt;= (int)Settings[&quot;RandomZoneThreshold&quot;] ||  ExcludeCount &lt; (int)Settings[&quot;ExcludeThreshold&quot;]) {SmLog(&quot;We need all the things. Selecting a random zone&quot;);		Settings[&quot;RandomZones&quot;]=true;}" />
   </SubRoutine>
   <SubRoutine SubRoutineName="MailItems">
     <WaitAction Condition="ObjectManager.GetObjectsOfType&lt;WoWGameObject&gt;().Any(o =&gt; o.SubType == WoWGameObjectType.Mailbox);" Timeout="20000" />
@@ -266,15 +270,62 @@
     <MailItemAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" Mail="All" UseCategory="True" ItemID="" Amount="0" AutoFindMailBox="True" Location="0, 0, 0" />
   </SubRoutine>
   <SubRoutine SubRoutineName="StoreItemsInGbank">
+	 <StackItemsAction />
     <If Condition="SecondaryBot.Name != &quot;Combat Bot&quot;" IgnoreCanRun="True">
       <CustomAction Code="SwitchToBot(&quot;Combat Bot&quot;);" />
       <WaitAction Condition="SecondaryBot.Name == &quot;Combat Bot&quot;" Timeout="20000" />
     </If>
     <CallSubRoutine SubRoutineName="MoveToGbank" />
-	<CustomAction Code="MyLog(&quot;Storing items in GBank&quot;);" />
-	<PutItemInBankAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-	<PutItemInBankAction Category="Gem" SubCategoryType="WoWItemGemClass" SubCategory="None" Deposit="All" UseCategory="True" Bank="Guild" ItemID="" GuildTab="0" NpcEntry="0" Amount="0" AutoFindBank="True" Location="0, 0, 0" />
-	
+	  <!--Green Tea Leaf-->
+	  <If Condition="InbagCount(72234) &gt; 100" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Depositing Green Tea Leaf to the guild bank.&quot;);" />
+        <PutItemInBankAction Deposit="All" UseCategory="False" Bank="Guild" ItemID="72234" AutoFindBank="True" />
+      </If>
+      <!--Rain Poppy-->
+      <If Condition="InbagCount(72237) &gt; 100" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Depositing Rain Poppy to the guild bank.&quot;);" />
+        <PutItemInBankAction Deposit="All" UseCategory="False" Bank="Guild" ItemID="72237" AutoFindBank="True" />
+      </If>
+      <!--Silkweed-->
+      <If Condition="InbagCount(72235) &gt; 100" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Depositing Silkweed to the guild bank.&quot;);" />
+        <PutItemInBankAction Deposit="All" UseCategory="False" Bank="Guild" ItemID="72235" AutoFindBank="True" />
+      </If>
+      <!--Snow Lily-->
+      <If Condition="InbagCount(79010) &gt; 100" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Depositing Snow Lily to the guild bank.&quot;);" />
+        <PutItemInBankAction Deposit="All" UseCategory="False" Bank="Guild" ItemID="79010" AutoFindBank="True" />
+      </If>
+      <!--Fool's Cap-->
+      <If Condition="InbagCount(79011) &gt; 100" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Depositing Fool's Cap to the guild bank.&quot;);" />
+        <PutItemInBankAction Deposit="All" UseCategory="False" Bank="Guild" ItemID="79011" AutoFindBank="True" />
+      </If>
+      <!--Golden Lotus-->
+      <If Condition="InbagCount(72238) &gt; 100" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Depositing Golden Lotus to the guild bank.&quot;);" />
+        <PutItemInBankAction Deposit="All" UseCategory="False" Bank="Guild" ItemID="72238" AutoFindBank="True" />
+      </If>
+      <!--Black Trillium Ore-->
+      <If Condition="InbagCount(72094) &gt; 200" IgnoreCanRun="True">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Depositing Black Trillium Ore to the guild bank.&quot;);" />
+        <PutItemInBankAction Deposit="All" UseCategory="False" Bank="Guild" ItemID="72094" GuildTab="0" AutoFindBank="True" />
+      </If>
+      <!--White Trillium Ore-->
+      <If Condition="InbagCount(72103) &gt; 200" IgnoreCanRun="True">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Depositing White Trillium Ore to the guild bank.&quot;);" />
+        <PutItemInBankAction Deposit="All" UseCategory="False" Bank="Guild" ItemID="72103" GuildTab="0" AutoFindBank="True" />
+      </If>
+      <!--Ghost Iron Ore-->
+      <If Condition="InbagCount(72092) &gt; 200" IgnoreCanRun="True">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Depositing Ghost Iron Ore to the guild bank.&quot;);" />
+        <PutItemInBankAction Deposit="All" UseCategory="False" Bank="Guild" ItemID="72092" GuildTab="0" AutoFindBank="True" />
+      </If>
+      <!--Kyparite-->
+      <If Condition="InbagCount(72093) &gt; 1000" IgnoreCanRun="True">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Depositing Kyparite to the guild bank.&quot;);" />
+        <PutItemInBankAction Deposit="All" UseCategory="False" Bank="Guild" ItemID="72093" GuildTab="0" AutoFindBank="True" />
+      </If>
     <If Condition="OnFarmer &amp;&amp; SecondaryBot.Name != &quot;Gatherbuddy2&quot;" IgnoreCanRun="True">
       <CustomAction Code="SwitchToBot(&quot;Gatherbuddy2&quot;);" />
       <WaitAction Condition="SecondaryBot.Name == &quot;Gatherbuddy2&quot;" Timeout="20000" />
@@ -282,8 +333,56 @@
   </SubRoutine>
   <SubRoutine SubRoutineName="WithdrawItemsInGbank">
     <CallSubRoutine SubRoutineName="MoveToGbank" />
-		<CustomAction Code="MyLog(&quot;Getting items from GBank&quot;);" />
-		<GetItemfromBankAction Withdraw="All" Bank="Guild" MinFreeBagSlots="0" GetItemfromBankType="SpecificItem" ItemID="" NpcEntry="0" Amount="0" AutoFindBank="True" WithdrawAdditively="True" Location="0, 0, 0" />
+		<!--Green Tea Leaf-->
+      <If Condition="InbagCount(72234) &lt; 100 &amp;&amp; InGBankCount (72234) &gt;= 1 &amp;&amp; !Me.NormalBagsFull" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Withdrawing Green Tea Leaf from the guild bank.&quot;);" />
+        <GetItemfromBankAction Withdraw="Amount" Bank="Guild" GetItemfromBankType="SpecificItem" ItemID="72234" Amount="100" AutoFindBank="True" WithdrawAdditively="False" />
+      </If>
+      <!--Rain Poppy-->
+      <If Condition="InbagCount(72237) &lt; 100 &amp;&amp; InGBankCount (72237) &gt;= 1 &amp;&amp; !Me.NormalBagsFull" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Withdrawing Rain Poppy from the guild bank.&quot;);" />
+        <GetItemfromBankAction Withdraw="Amount" Bank="Guild" GetItemfromBankType="SpecificItem" ItemID="72237" Amount="100" AutoFindBank="True" WithdrawAdditively="False" />
+      </If>
+      <!--Silkweed-->
+      <If Condition="InbagCount(72235) &lt; 100 &amp;&amp; InGBankCount (72235) &gt;= 1 &amp;&amp; !Me.NormalBagsFull" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Withdrawing Silkweed from the guild bank.&quot;);" />
+        <GetItemfromBankAction Withdraw="Amount" Bank="Guild" GetItemfromBankType="SpecificItem" ItemID="72235" Amount="100" AutoFindBank="True" WithdrawAdditively="False" />
+      </If>
+      <!--Snow Lily-->
+      <If Condition="InbagCount(79010) &lt; 100 &amp;&amp; InGBankCount (79010) &gt;= 1 &amp;&amp; !Me.NormalBagsFull" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Withdrawing Snow Lily from the guild bank.&quot;);" />
+        <GetItemfromBankAction Withdraw="Amount" Bank="Guild" GetItemfromBankType="SpecificItem" ItemID="79010" Amount="100" AutoFindBank="True" WithdrawAdditively="False" />
+      </If>
+      <!--Fool's Cap-->
+      <If Condition="InbagCount(79011) &lt; 100 &amp;&amp; InGBankCount (79011) &gt;= 1 &amp;&amp; !Me.NormalBagsFull" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Withdrawing Fool's Cap from the guild bank.&quot;);" />
+        <GetItemfromBankAction Withdraw="Amount" Bank="Guild" GetItemfromBankType="SpecificItem" ItemID="79011" Amount="100" AutoFindBank="True" WithdrawAdditively="False" />
+      </If>
+      <!--Golden Lotus-->
+      <If Condition="InbagCount(72238) &lt; 100 &amp;&amp; InGBankCount (72238) &gt;= 1 &amp;&amp; !Me.NormalBagsFull" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Withdrawing Golden Lotus from the guild bank.&quot;);" />
+        <GetItemfromBankAction Withdraw="Amount" Bank="Guild" GetItemfromBankType="SpecificItem" ItemID="72238" Amount="100" AutoFindBank="True" WithdrawAdditively="False" />
+      </If>
+	  <!--Black Trillium Ore-->
+      <If Condition="InbagCount(72094) &lt; 100 &amp;&amp; InGBankCount (72094) &gt;= 1 &amp;&amp; !Me.NormalBagsFull" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Withdrawing Black Trillium Ore from the guild bank.&quot;);" />
+        <GetItemfromBankAction Withdraw="Amount" Bank="Guild" GetItemfromBankType="SpecificItem" ItemID="72094" Amount="200" AutoFindBank="True" WithdrawAdditively="False" />
+      </If>
+      <!--White Trillium Ore-->
+      <If Condition="InbagCount(72103) &lt; 200 &amp;&amp; InGBankCount (72103) &gt;= 1 &amp;&amp; !Me.NormalBagsFull" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Withdrawing White Trillium Ore from the guild bank.&quot;);" />
+        <GetItemfromBankAction Withdraw="Amount" Bank="Guild" GetItemfromBankType="SpecificItem" ItemID="72103" Amount="200" AutoFindBank="True" WithdrawAdditively="False" />
+      </If>
+      <!--Ghost Iron Ore-->
+      <If Condition="InbagCount(72092) &lt; 200 &amp;&amp; InGBankCount (72092) &gt;= 1 &amp;&amp; !Me.NormalBagsFull" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Withdrawing Ghost Iron Ore from the guild bank.&quot;);" />
+        <GetItemfromBankAction Withdraw="Amount" Bank="Guild" GetItemfromBankType="SpecificItem" ItemID="72092" Amount="200" AutoFindBank="True" WithdrawAdditively="False" />
+      </If>
+      <!--Kyparite-->
+      <If Condition="InbagCount(72093) &lt; 1000 &amp;&amp; InGBankCount (72093) &gt;= 1 &amp;&amp; !Me.NormalBagsFull" IgnoreCanRun="False">
+        <CustomAction Code="Log (Colors.Crimson,&quot;AHBuddy: &quot;,Colors.BlanchedAlmond,&quot;Withdrawing Kyparite from the guild bank.&quot;);" />
+        <GetItemfromBankAction Withdraw="Amount" Bank="Guild" GetItemfromBankType="SpecificItem" ItemID="72093" Amount="1000" AutoFindBank="True" WithdrawAdditively="False" />
+      </If>
   </SubRoutine>
   <SubRoutine SubRoutineName="Hearth">
 	<!--If we have a hearthstone-->
@@ -389,31 +488,34 @@
       <WaitAction Condition="Me.Mounted" Timeout="4000" />
     </While>
   </SubRoutine>
+  <SubRoutine SubRoutineName="ResetAHCounts">
+	<CustomAction Code="AHCount.Clear(); AHCount.Add(72092,(int)Settings[&quot;StackAmount&quot;]); AHCount.Add(72094,(int)Settings[&quot;StackAmount&quot;]); AHCount.Add(72103,(int)Settings[&quot;StackAmount&quot;]); AHCount.Add(72237,(int)Settings[&quot;StackAmount&quot;]); AHCount.Add(72234,(int)Settings[&quot;StackAmount&quot;]); AHCount.Add(72235,(int)Settings[&quot;StackAmount&quot;]); AHCount.Add(79010,(int)Settings[&quot;StackAmount&quot;]); AHCount.Add(79011,(int)Settings[&quot;StackAmount&quot;]); AHCount.Add(89639,(int)Settings[&quot;StackAmount&quot;]); AHCount.Add(72238,(int)Settings[&quot;StackAmount&quot;]);" />
+  </SubRoutine>
   <SubRoutine SubRoutineName="SellOnAH">
 	<!--Ghost Iron Ore-->
-	<SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72092" MinBuyout="39g0s0c" MaxBuyout="100g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+	<SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72092" MinBuyout="39g0s0c" MaxBuyout="100g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="AHCount[72092]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
     <!--Black Trillium Ore-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72094" MinBuyout="180g0s0c" MaxBuyout="270g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72094" MinBuyout="180g0s0c" MaxBuyout="270g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="AHCount[72094]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
     <!--WhiteTrillium Ore-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72103" MinBuyout="180g0s0c" MaxBuyout="270g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72103" MinBuyout="180g0s0c" MaxBuyout="270g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="AHCount[72103]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
     <!--Trillium Bar-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72095" MinBuyout="0g10s0c" MaxBuyout="100g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72095" MinBuyout="0g10s0c" MaxBuyout="100g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="AHCount[72095]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
     <!--Living Steel-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72104" MinBuyout="180g10s0c" MaxBuyout="350g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72104" MinBuyout="180g10s0c" MaxBuyout="350g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="AHCount[72104]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="True" Location="0, 0, 0" />
     <!--Rain Poppy-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72237" MinBuyout="35g0s0c" MaxBuyout="60g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72237" MinBuyout="35g0s0c" MaxBuyout="60g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="AHCount[72237]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Green Tea Leaf-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72234" MinBuyout="25g0s0c" MaxBuyout="50g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72234" MinBuyout="25g0s0c" MaxBuyout="50g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="AHCount[72234]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Silkweed-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72235" MinBuyout="35g10s0c" MaxBuyout="80g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72235" MinBuyout="35g10s0c" MaxBuyout="80g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="AHCount[72235]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Snow Lily-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="79010" MinBuyout="40g10s0c" MaxBuyout="80g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="79010" MinBuyout="40g10s0c" MaxBuyout="80g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="AHCount[79010]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Fool's Cap-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="79011" MinBuyout="75g10s0c" MaxBuyout="160g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="79011" MinBuyout="75g10s0c" MaxBuyout="160g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="AHCount[79011]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
 	<!--Desecrated Herb-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="89639" MinBuyout="50g10s0c" MaxBuyout="190g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="89639" MinBuyout="50g10s0c" MaxBuyout="190g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="AHCount[89639]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Golden Lotus-->
-    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72238" MinBuyout="35g10s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
+    <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="Herb" UseCategory="False" RunTime="_12_Hours" AmountType="Amount" ItemID="72238" MinBuyout="35g10s0c" MaxBuyout="150g0s0c" StackSize="1" IgnoreStackSizeBelow="1" Amount="AHCount[72238]" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <!--Cooking Mats-->
     <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74847" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
     <SellItemOnAhAction Category="TradeGoods" SubCategoryType="WoWItemTradeGoodsClass" SubCategory="None" UseCategory="False" RunTime="_12_Hours" AmountType="Everything" ItemID="74839" MinBuyout="1g0s0c" MaxBuyout="8g0s0c" StackSize="20" IgnoreStackSizeBelow="1" Amount="10" BidPrecent="95" UndercutPrecent="0.1" AutoFindAh="True" PostIfBelowMinBuyout="False" Location="0, 0, 0" />
@@ -475,11 +577,13 @@
     <CustomAction Code="MyLog(&quot;Townlong Steppes: {0}&quot;,Settings[&quot;Townlong Steppes&quot;]);" />
    <CustomAction Code="MyLog(&quot;Vale of Eternal Blossoms: {0}&quot;,Settings[&quot;Vale of Eternal Blossoms&quot;]);" />
     <CustomAction Code="MyLog(&quot;Valley of the Four Winds: {0}&quot;,Settings[&quot;Valley of the Four Winds&quot;]);" />
+	<CustomAction Code="SmLog(&quot;Made by lii&quot;);" />
     <Declaration Code="string Realm;" />
     <Declaration Code="bool OnFarmer,CanHearth;" />
     <Declaration Code="int CityZoneID,TimeToSpendInZone,TimeUntilBanker;" />
     <Declaration Code="List&lt;uint&gt; FarmZoneIDs;"	/>
 	<Declaration Code="List&lt;uint&gt; FarmItemIDs;" />
+	<Declaration Code="Dictionary&lt;int,int&gt; AHCount = new Dictionary&lt;int,int&gt;();" />
     <Declaration Code="DateTime ZoneStartTime;" />
 	<Declaration Code="DateTime BankerStartTime;" />
     <Declaration Code="Stopwatch ChatThrottleSW = new Stopwatch();" />
@@ -551,8 +655,8 @@
       <If Condition="FarmZoneIDs.Contains(Me.ZoneId) &amp;&amp; !(bool)Settings[&quot;SmartFarm&quot;]" IgnoreCanRun="True">
         <CustomAction Code="Settings[&quot;FarmedZone&quot;] = Me.ZoneId;" />
       </If>
-      <If Condition="(Me.ZoneId != CityZoneID &amp;&amp; !FarmZoneIDs.Contains(Me.ZoneId)) || (bool)Settings[&quot;SmartFarm&quot;]" IgnoreCanRun="True">
-        <CustomAction Code="MyLog(&quot;Hearthing since bot isn't in capital or one of the farmed zones or SmartFarm is enabled&quot;);" />
+      <If Condition="(Me.ZoneId != CityZoneID &amp;&amp; !FarmZoneIDs.Contains(Me.ZoneId))" IgnoreCanRun="True">
+        <CustomAction Code="MyLog(&quot;Hearthing since bot isn't in capital or one of the farmed zones&quot;);" />
         <CallSubRoutine SubRoutineName="Hearth" />
       </If>
     </If>
@@ -764,31 +868,31 @@
   <SubRoutine SubRoutineName="LoadProfile">
     <!--Dread Wastes-->
     <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 6138" IgnoreCanRun="True">
-      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Dread Wastes&quot;);" />
+      <CustomAction Code="LoadProfileFromSubfolder(&quot;Dread Wastes&quot;);" />
     </If>
     <!--Krasarang Wilds-->
     <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 6134" IgnoreCanRun="True">
-      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Krasarang Wilds&quot;);" />
+      <CustomAction Code="LoadProfileFromSubfolder(&quot;Krasarang Wilds&quot;);" />
     </If>
     <!--Kun-Lai Summit-->
     <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5841" IgnoreCanRun="True">
-      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Kun-Lai Summit&quot;);" />
+      <CustomAction Code="LoadProfileFromSubfolder(&quot;Kun-Lai Summit&quot;);" />
     </If>
     <!--The Jade Forest-->
     <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5785" IgnoreCanRun="True">
-      <CustomAction Code="LoadPorfileFromSubfolder(&quot;The Jade Forest&quot;);" />
+      <CustomAction Code="LoadProfileFromSubfolder(&quot;The Jade Forest&quot;);" />
     </If>
     <!--Townlong Steppes-->
     <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5842" IgnoreCanRun="True">
-      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Townlong Steppes&quot;);" />
+      <CustomAction Code="LoadProfileFromSubfolder(&quot;Townlong Steppes&quot;);" />
     </If>
     <!--Vale of Eternal Blossoms-->
     <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5840" IgnoreCanRun="True">
-      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Vale of Eternal Blossoms&quot;);" />
+      <CustomAction Code="LoadProfileFromSubfolder(&quot;Vale of Eternal Blossoms&quot;);" />
     </If>
     <!--Valley of the Four Winds-->
     <If Condition="(uint)Settings[&quot;FarmedZone&quot;] == 5805" IgnoreCanRun="True">
-      <CustomAction Code="LoadPorfileFromSubfolder(&quot;Valley of the Four Winds&quot;);" />
+      <CustomAction Code="LoadProfileFromSubfolder(&quot;Valley of the Four Winds&quot;);" />
     </If>
   </SubRoutine>
   <SubRoutine SubRoutineName="Repair">
@@ -820,5 +924,5 @@
   <Declaration Code="void SmLog(string format,params object[] args)&#xD;&#xA;        {&#xD;&#xA;            Log(Colors.Yellow,&quot;SmartFarm: &quot;,Colors.LightYellow,format,args);&#xD;&#xA;        }&#xD;&#xA;" />
   <Declaration Code="void Err(string format,params object[] args)&#xD;&#xA;        {&#xD;&#xA;            Log(Colors.Green,&quot;Multiprofile: &quot;,Colors.Red,format,args);&#xD;&#xA;        }&#xD;&#xA;" />
   <Declaration Code="uint TotalItemsInBag()&#xD;&#xA;        {&#xD;&#xA;            uint cnt=0;&#xD;&#xA;            foreach (var item in Me.BagItems)&#xD;&#xA;                 cnt += item.StackCount;&#xD;&#xA;            return cnt;&#xD;&#xA;        }&#xD;&#xA;" />
-  <Declaration Code="        void LoadPorfileFromSubfolder(string folder)&#xD;&#xA;        {&#xD;&#xA;            string path = (string)Settings[&quot;ProfileFolderPath&quot;];&#xD;&#xA;            bool isAbsolute = System.IO.Path.IsPathRooted(path);&#xD;&#xA;            if (!isAbsolute)&#xD;&#xA;                path = System.IO.Path.Combine(Utilities.AssemblyDirectory, path);&#xD;&#xA;            path = System.IO.Path.Combine(path, folder);&#xD;&#xA;            path = System.IO.Path.Combine(path, Me.IsHorde ? &quot;Horde&quot; : &quot;Alliance&quot;);&#xD;&#xA;            if (System.IO.Directory.Exists(path))&#xD;&#xA;            {&#xD;&#xA;                string[] files = System.IO.Directory.GetFiles(path, &quot;*.xml&quot;, System.IO.SearchOption.TopDirectoryOnly);&#xD;&#xA;                if (files != null &amp;&amp; files.Length &gt; 0)&#xD;&#xA;                {&#xD;&#xA;                    int index = new Random().Next(0, files.Length);&#xD;&#xA;                    ProfileManager.LoadNew(files[index]);&#xD;&#xA;                    MyLog(&quot;Loading profile for zone: {0}&quot;, folder);&#xD;&#xA;                }&#xD;&#xA;                else&#xD;&#xA;                    Err(&quot;no profiles found in path: {0}&quot;, path);&#xD;&#xA;            }&#xD;&#xA;            else&#xD;&#xA;                MyLog(&quot;ProfilePath: {0} not found&quot;, path);&#xD;&#xA;        }" />
+  <Declaration Code="        void LoadProfileFromSubfolder(string folder)&#xD;&#xA;        {&#xD;&#xA;            string path = (string)Settings[&quot;ProfileFolderPath&quot;];&#xD;&#xA;            bool isAbsolute = System.IO.Path.IsPathRooted(path);&#xD;&#xA;            if (!isAbsolute)&#xD;&#xA;                path = System.IO.Path.Combine(Utilities.AssemblyDirectory, path);&#xD;&#xA;            path = System.IO.Path.Combine(path, folder);&#xD;&#xA;            path = System.IO.Path.Combine(path, Me.IsHorde ? &quot;Horde&quot; : &quot;Alliance&quot;);&#xD;&#xA;            if (System.IO.Directory.Exists(path))&#xD;&#xA;            {&#xD;&#xA;                string[] files = System.IO.Directory.GetFiles(path, &quot;*.xml&quot;, System.IO.SearchOption.TopDirectoryOnly);&#xD;&#xA;                if (files != null &amp;&amp; files.Length &gt; 0)&#xD;&#xA;                {&#xD;&#xA;                    int index = new Random().Next(0, files.Length);&#xD;&#xA;                    ProfileManager.LoadNew(files[index]);&#xD;&#xA;                    MyLog(&quot;Loading profile for zone: {0}&quot;, folder);&#xD;&#xA;                }&#xD;&#xA;                else&#xD;&#xA;                    Err(&quot;no profiles found in path: {0}&quot;, path);&#xD;&#xA;            }&#xD;&#xA;            else&#xD;&#xA;                MyLog(&quot;ProfilePath: {0} not found&quot;, path);&#xD;&#xA;        }" />
 </Professionbuddy>
