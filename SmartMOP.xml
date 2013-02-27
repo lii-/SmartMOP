@@ -135,7 +135,7 @@
           <If Condition="!(bool)Settings[&quot;DepositInGbank&quot;]" IgnoreCanRun="True">
             <CallSubRoutine SubRoutineName="MailItems" />
           </If>
-		  <If Condition "!(bool)Settings[&quot;BankerTimer&quot;] &amp;&amp; (bool)Settings[&quot;SwitchToBanker&quot;]" IgnoreCanRun="True">
+		  <If Condition="!(bool)Settings[&quot;BankerTimer&quot;] &amp;&amp; (bool)Settings[&quot;SwitchToBanker&quot;]" IgnoreCanRun="True">
 			<CustomAction Code="Settings[&quot;DoSwitch&quot;] = true;" />
 		  </If>
           <!--Log on Banker-->
