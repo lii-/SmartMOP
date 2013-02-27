@@ -30,15 +30,18 @@
     <Settings DefaultValue="false" Type="Boolean" Name="Krasarang Wilds" Summary="Farm in Krasarang Wilds" Category="Pandaria Zones" Global="False" Hidden="False" />
     <Settings DefaultValue="false" Type="Boolean" Name="Vale of Eternal Blossoms" Summary="Farm in Vale of Eternal Blossoms" Category="Pandaria Zones" Global="False" Hidden="False" />
 	
-	<Settings DefaultValue="true" Type="Boolean" Name="Ghost Iron Ore" Summary="Farm Ghost Iron Ore" Category="Pandaria Items" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Trillium Ore" Summary="Farm Trillium Ore" Category="Pandaria Items" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Rain Poppy" Summary="Farm Rain Poppy" Category="Pandaria Items" Global="False" Hidden="False" />
-	<Settings DefaultValue="true" Type="Boolean" Name="Snow Lily" Summary="Farm Snow Lily" Category="Pandaria Items" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Green Tea Leaf" Summary="Farm Green Tea Leaf" Category="Pandaria Items" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Silkweed" Summary="Farm Silkweed" Category="Pandaria Items" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Fool's Cap" Summary="Farm Fool's Cap" Category="Pandaria Items" Global="False" Hidden="False" />
-    <Settings DefaultValue="true" Type="Boolean" Name="Desecrated Herb" Summary="Farm Desecrated Herb" Category="Pandaria Items" Global="False" Hidden="False" />
-	<Settings DefaultValue="true" Type="Boolean" Name="Golden Lotus" Summary="Farm Golden Lotus" Category="Pandaria Items" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="SmartFarm" Summary="Set to true if you want to farm based on stock" Category="SmartFarm" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="VerboseLog" Summary="Set to true if you want to see SmartFarm thinking" Category="SmartFarm" Global="False" Hidden="False" />
+	<!-- Warning: Enabling statistically insignificant items such as golden lotus may have unexpected results -->
+	<Settings DefaultValue="true" Type="Boolean" Name="Ghost Iron Ore" Summary="Take Ghost Iron Ore into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="Trillium Ore" Summary="Take Trillium Ore into account when determining the next farm zone" Category="SmartFarm" Global="true" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Rain Poppy" Summary="Take Rain Poppy into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
+	<Settings DefaultValue="true" Type="Boolean" Name="Snow Lily" Summary="Take Snow Lily into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Green Tea Leaf" Summary="Take Green Tea Leaf into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Silkweed" Summary="Take Silkweed into account when determining the next farm zone" Category="PSmartFarm" Global="False" Hidden="False" />
+    <Settings DefaultValue="true" Type="Boolean" Name="Fool's Cap" Summary="Take Fool's Cap into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="False" />
+    <Settings DefaultValue="false" Type="Boolean" Name="Desecrated Herb" Summary="Take Desecrated Herb into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="true" />
+	<Settings DefaultValue="false" Type="Boolean" Name="Golden Lotus" Summary="Take Golden Lotus into account when determining the next farm zone" Category="SmartFarm" Global="False" Hidden="true" />
 	
 	<Settings DefaultValue="" Type="String" Name="FarmerName" Summary="The Name of your Farmer" Category="Farmer" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="EmptyBagsNow" Summary="Set to true to empty bags now." Category="Farmer" Global="False" Hidden="False" />
@@ -60,8 +63,7 @@
     <Settings DefaultValue="270" Type="Int32" Name="MaxMinutesUntilBanker" Summary="Maximum number of minutes to wait to switch" Category="Banker" Global="False" Hidden="False" />
     
     <Settings DefaultValue="Bots\ProfessionBuddy\Profiles\MegaMOP" Type="String" Name="ProfileFolderPath" Summary="This is the path to the base profile folder. Inside are subfolders named after the zones they contain profiles for." Category="Advanced" Global="True" Hidden="False" />
-	<Settings DefaultValue="false" Type="Boolean" Name="SmartFarm" Summary="Set to true if you want to farm based on stock" Category="Advanced" Global="False" Hidden="False" />
-	<Settings DefaultValue="false" Type="Boolean" Name="VerboseLog" Summary="Set to true if you want to see SmartFarm thinking" Category="Advanced" Global="False" Hidden="False" />
+	
 	<Settings DefaultValue="98" Type="Int32" Name="StackThreshold" Summary="Number of stacks before we stop farming a particular item. 98 is a guild tab" Category="Advanced" Global="False" Hidden="False" />
 	<Settings DefaultValue="30" Type="Int32" Name="HearthCooldown" Summary="The cooldown on your hearthstone" Category="Advanced" Global="False" Hidden="False" />
 	
