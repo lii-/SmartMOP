@@ -39,7 +39,7 @@
 	<Settings DefaultValue="0" Type="Int32" Name="ExcludeThreshold" Summary="The number of completed stock items required before we start using SmartFarm. With all nodes enabled, 9 means we never use it" Category="SmartFarm" Global="False" Hidden="True" />
 	<Settings DefaultValue="true" Type="Boolean" Name="SmartFarm" Summary="Set to true to activate SmartFarm. Farms herbs and ore based on stock" Category="SmartFarm" Global="False" Hidden="False" />
 	<Settings DefaultValue="false" Type="Boolean" Name="VerboseLog" Summary="Set to true if you want to see SmartFarm thinking" Category="SmartFarm" Global="False" Hidden="False" />
-	<Settings DefaultValue="false" Type="Boolean" Name="RefreshDataStore" Summary="Update DataStore DB" Category="SmartFarm" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="RefreshDataStore" Summary="Update DataStore DB" Category="SmartFarm" Global="False" Hidden="True" />
 	<Settings DefaultValue="true" Type="Boolean" Name="Ghost Iron Ore" Summary="Take Ghost Iron Ore into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="False" />
     <Settings DefaultValue="true" Type="Boolean" Name="Trillium Ore" Summary="Take Trillium Ore into account when determining the next farm zone" Category="SmartFarm Nodes" Global="true" Hidden="True" />
     <Settings DefaultValue="true" Type="Boolean" Name="Rain Poppy" Summary="Take Rain Poppy into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="False" />
@@ -52,7 +52,7 @@
 	<Settings DefaultValue="true" Type="Boolean" Name="Kyparite Ore" Summary="Take Kyparite Ore into account when determining the next farm zone" Category="SmartFarm Nodes" Global="False" Hidden="False" />
 	
 	<Settings DefaultValue="true" Type="Boolean" Name="EmptyBagsNow" Summary="Set to true to empty bags now." Category="Actions" Global="False" Hidden="False" />
-	<Settings DefaultValue="false" Type="Boolean" Name="SwitchToBankerNow" Summary="Set to true to switch to banker now" Category="Banker" Global="False" Hidden="False" />
+	<Settings DefaultValue="false" Type="Boolean" Name="SwitchToBankerNow" Summary="Set to true to switch to banker now" Category="Actions" Global="False" Hidden="False" />
 	 
 	<Settings DefaultValue="" Type="String" Name="FarmerName" Summary="The Name of your Farmer" Category="Farmer" Global="False" Hidden="False" />
 	<Settings DefaultValue="true" Type="Boolean" Name="Repair In Cty" Summary="Set to true if you want farmer to repair in the city" Category="Farmer" Global="False" Hidden="False" />
@@ -92,7 +92,6 @@
 	<If Condition="(bool)Settings[&quot;RefreshDataStore&quot;]" IgnoreCanRun="True">
 		<CustomAction Code="Settings[&quot;RefreshDataStore&quot;] = false;" />
 		<CallSubRoutine SubRoutineName="RefreshStore" />
-		<CallSubRoutine SubRoutineName="SmartFarm" /> <!-- remove on release -->
 	</If>
     <If Condition="OnFarmer == true" IgnoreCanRun="True">
       <CustomAction Code="if ((bool)Settings[&quot;EnableZoneTimer&quot;]  &amp;&amp; (ChatThrottleSW.ElapsedMilliseconds &gt;= (int)Settings[&quot;Pulse&quot;]*1000 || !ChatThrottleSW.IsRunning))&#xD;&#xA;{&#xD;&#xA;   MyLog(&quot;Switching zone in {0} minutes&quot;,&#xD;&#xA;         (int)(TimeToSpendInZone - DateTime.Now.Subtract(ZoneStartTime).TotalMinutes));&#xD;&#xA;}" />
