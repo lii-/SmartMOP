@@ -193,6 +193,8 @@
         <While Condition="Me.ZoneId == CityZoneID" IgnoreCanRun="True">
           <CallSubRoutine SubRoutineName="Use Portal" />
         </While>
+		<CustomAction Code="Settings[&quot;EmptyBagsNow&quot;] = false;" />
+		<CustomAction Code="Settings[&quot;SwitchToBankerNow&quot;] = false;" />
       </If>
       <!--On Banker-->
     </If>
