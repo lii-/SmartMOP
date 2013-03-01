@@ -271,7 +271,7 @@
 		  <!-- Golden Lotus -->
 		<CustomAction Code="if ((bool)Settings[&quot;Golden Lotus&quot;]) FarmItemIDs.Add(72238);" />
 		<!-- Choose the next zone based on node frequency and stock percentages -->
-		<CustomAction Code="ZoneCount += 1;		SortedDictionary&lt;uint,float&gt; ZoneConfidence = new SortedDictionary&lt;uint,float&gt;();	int cnt=0; int StockMod=2;		foreach (var i in FarmZoneYields.Keys) {foreach (var j in FarmZoneYields[i].Keys) {var iValue = FarmZoneYields[i]; var jValue = FarmZoneYields[i][j];	foreach (var k in NeededStock.Keys) {if (j == k &amp;&amp; (bool)Settings[TranslateIDs[i]] &amp;&amp; jValue &gt; 0) {if (!ZoneConfidence.ContainsKey(i)) {ZoneConfidence.Add(i,0);}	cnt+=1;		if (NeededStock[k] == 0) {StockMod=3;}		float con = (float)((100-NeededStock[k])*StockMod+(jValue/10));   ZoneConfidence[i] += con;	if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}: {1} ({2})&quot;,TranslateIDs[i],TranslateIDs[j],con);}}}}	if (ZoneConfidence.ContainsKey(i) &amp;&amp; (bool)Settings[&quot;VerboseLog&quot;]) {ZoneConfidence[i] /= cnt;		SmLog(&quot;{0}: {1}&quot;,TranslateIDs[i],ZoneConfidence[i]);	cnt=0;}}		 var final = ZoneConfidence.Where(i =&gt; i.Value == ZoneConfidence.Values.Max()).Select(i =&gt; i.Key).FirstOrDefault();		Settings[&quot;FarmedZone&quot;]=(uint)final;		SmLog(&quot;Chose {0} to farm next&quot;,TranslateIDs[final]);		If (Settings[&quot;RandomAfterX&quot;] &amp;&amp; Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;Choosing a random zone in {0} zone switches&quot;ZoneCount);}" />
+		<CustomAction Code="ZoneCount += 1;		SortedDictionary&lt;uint,float&gt; ZoneConfidence = new SortedDictionary&lt;uint,float&gt;();	int cnt=0; int StockMod=2;		foreach (var i in FarmZoneYields.Keys) {foreach (var j in FarmZoneYields[i].Keys) {var iValue = FarmZoneYields[i]; var jValue = FarmZoneYields[i][j];	foreach (var k in NeededStock.Keys) {if (j == k &amp;&amp; (bool)Settings[TranslateIDs[i]] &amp;&amp; jValue &gt; 0) {if (!ZoneConfidence.ContainsKey(i)) {ZoneConfidence.Add(i,0);}	cnt+=1;		if (NeededStock[k] == 0) {StockMod=3;}		float con = (float)((100-NeededStock[k])*StockMod+(jValue/10));   ZoneConfidence[i] += con;		if ((bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;{0}: {1} ({2})&quot;,TranslateIDs[i],TranslateIDs[j],con);}}}}		if (ZoneConfidence.ContainsKey(i) &amp;&amp; (bool)Settings[&quot;VerboseLog&quot;]) {ZoneConfidence[i] /= cnt;		SmLog(&quot;{0}: {1}&quot;,TranslateIDs[i],ZoneConfidence[i]);	cnt=0;}}		 var final = ZoneConfidence.Where(i =&gt; i.Value == ZoneConfidence.Values.Max()).Select(i =&gt; i.Key).FirstOrDefault();		Settings[&quot;FarmedZone&quot;]=(uint)final;		SmLog(&quot;Chose {0} to farm next&quot;,TranslateIDs[final]);		if ((bool)Settings[&quot;EnableRandomAfterX&quot;] &amp;&amp; (bool)Settings[&quot;VerboseLog&quot;]) {SmLog(&quot;Choosing a random zone in {0} zone switches&quot;,ZoneCount);}" />
 	</If>
   </SubRoutine>
   <SubRoutine SubRoutineName="RefreshStore">
@@ -403,7 +403,7 @@
   </SubRoutine>
   <SubRoutine SubRoutineName="Hearth">
 	<!--If we have a hearthstone-->
-	<If Condition="InbagCount(6948) &gt; 0" IgnoreCanRun="True">
+	<If Condition="InbagCount(6948) &gt; 0 &amp;&amp; !Me.IsCasting" IgnoreCanRun="True">
 		<CustomAction Code="CanHearth = Me.BagItems.FirstOrDefault(i =&gt; i.Entry == 6948).Cooldown == 0;" />
 		<!--and it isn't on cooldown-->
 		<If Condition="CanHearth">
