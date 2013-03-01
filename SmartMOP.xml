@@ -53,6 +53,7 @@
 	
 	<Settings DefaultValue="true" Type="Boolean" Name="EmptyBagsNow" Summary="Set to true to empty bags now." Category="Actions" Global="False" Hidden="False" />
 	<Settings DefaultValue="false" Type="Boolean" Name="SwitchToBankerNow" Summary="Set to true to switch to banker now" Category="Actions" Global="False" Hidden="False" />
+	<Settings DefaultValue="true" Type="Boolean" Name="UseMailboxForStorage" Summary="Set to true to send everything back to the farmer and disable AH" Category="Actions" Global="False" Hidden="False" />
 	 
 	<Settings DefaultValue="" Type="String" Name="FarmerName" Summary="The Name of your Farmer" Category="Farmer" Global="False" Hidden="False" />
 	<Settings DefaultValue="true" Type="Boolean" Name="Repair In Cty" Summary="Set to true if you want farmer to repair in the city" Category="Farmer" Global="False" Hidden="False" />
@@ -199,6 +200,7 @@
       <!--On Banker-->
     </If>
     <If Condition="OnFarmer == false" IgnoreCanRun="False">
+	<If Condition="!(bool)Settings[&quot;UseMailboxForStorage&quot;]" IgnoreCanRun="True">
       <If Condition="(bool)Settings[&quot;CancelAuctions&quot;]" IgnoreCanRun="True">
         <CancelAuctionAction UseCategory="False" ItemID="0" AutoFindAh="True" MinBuyout="0g0s0c" IgnoreStackSizeBelow="1" />
       </If>
@@ -208,6 +210,7 @@
         <CallSubRoutine SubRoutineName="SellOnAH" />
         <CallSubRoutine SubRoutineName="WithdrawItemsInGbank" />
       </If>
+	 </If>
       <Declaration Code="bool StopGettingMail;" />
       <CustomAction Code=" StopGettingMail = false;" />
       <While Condition="(HasNewMail || MailCount&gt; 0) &amp;&amp; ! StopGettingMail" IgnoreCanRun="True">
@@ -217,7 +220,14 @@
         <!--If we didn't get any items from mailbox then exit loop-->
         <CustomAction Code="if (TotalItemsInBag() == mailCount)  StopGettingMail = true;" />
         <If Condition="!StopGettingMail" IgnoreCanRun="True">
-          <CallSubRoutine SubRoutineName="SellOnAH" />
+            <If Condition="!(bool)Settings[&quot;UseMailboxForStorage&quot;]" IgnoreCanRun="True">
+				<CallSubRoutine SubRoutineName="SellOnAH" />
+			</If>
+			<If Condition="(bool)Settings[&quot;UseMailboxForStorage&quot;]" IgnoreCanRun="True">
+				<CustomAction Code="CharacterSettings.Instance.MailRecipient = (string)Settings[&quot;FarmerName&quot;];" />
+				<CallSubRoutine SubRoutineName="MailItems" />
+				<CustomAction Code="CharacterSettings.Instance.MailRecipient = (string)Settings[&quot;BankerName&quot;];" />
+			</If>
         </If>
         <CustomAction Code="if (Me.NormalBagsFull)  StopGettingMail = true;" />
       </While>
@@ -493,7 +503,7 @@
       </While>
     </If>
   </SubRoutine>
-  <SubRoutine SubRoutineName="MailFarmerRepairGold">
+  <SubRoutine SubRoutineName="RepairGold">
     <While Condition="MailFrame.Instance == null || !MailFrame.Instance.IsVisible" IgnoreCanRun="True">
       <InteractionAction InteractType="GameObject" Entry="0" InteractDelay="0" GameObjectType="Mailbox" SpellFocus="Anvil" />
     </While>
